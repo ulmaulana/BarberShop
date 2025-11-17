@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore'
 import { firestore } from '../../config/firebase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -29,6 +29,7 @@ type TabType = 'upcoming' | 'completed' | 'cancelled'
 export function MyAppointmentsPage() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,8 +37,17 @@ export function MyAppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [showCancelModal, setShowCancelModal] = useState(false)
 
+  // GUARD: Redirect admin to admin panel
   useEffect(() => {
-    if (user) {
+    if (user && user.role === 'admin') {
+      console.warn('🚨 ADMIN in MyAppointmentsPage - REDIRECTING')
+      showToast('Admin should use Admin Panel!', 'error')
+      navigate('/adminpanel/dashboard', { replace: true })
+    }
+  }, [user, navigate, showToast])
+
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
       loadAppointments()
     }
   }, [user])

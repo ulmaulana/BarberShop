@@ -43,13 +43,22 @@ export function MyOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('all')
 
+  // GUARD: Redirect admin to admin panel
   useEffect(() => {
+    if (user && user.role === 'admin') {
+      console.warn('🚨 ADMIN in MyOrdersPage - REDIRECTING')
+      showToast('Admin should use Admin Panel!', 'error')
+      navigate('/adminpanel/dashboard', { replace: true })
+      return
+    }
+    
     if (!user) {
       navigate('/login?redirect=/orders')
       return
     }
+    
     loadOrders()
-  }, [user])
+  }, [user, navigate, showToast])
 
   const loadOrders = async () => {
     if (!user) return

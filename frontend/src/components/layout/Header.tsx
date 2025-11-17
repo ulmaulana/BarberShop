@@ -1,14 +1,29 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
-import { firestore } from '../../config/firebase'
+import { customerFirestore } from '../../config/firebaseCustomer'
 import { useAuth } from '../../contexts/AuthContext'
+import { useToast } from '../../contexts/ToastContext'
 
 export function Header() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { showToast } = useToast()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [cartCount, setCartCount] = useState(0)
+
+  // CRITICAL: Detect admin in customer header
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      const isAdminRoute = location.pathname.startsWith('/adminpanel')
+      if (!isAdminRoute) {
+        console.warn('🚨 ADMIN IN CUSTOMER HEADER - REDIRECTING')
+        showToast('Admin detected! Use Admin Panel instead.', 'error')
+        navigate('/adminpanel/dashboard', { replace: true })
+      }
+    }
+  }, [user, location.pathname, navigate, showToast])
 
   // Real-time cart counter
   useEffect(() => {
@@ -17,7 +32,7 @@ export function Header() {
       return
     }
 
-    const cartRef = collection(firestore, 'cart')
+    const cartRef = collection(customerFirestore, 'cart')
     const q = query(cartRef, where('userId', '==', user.uid))
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -90,27 +105,41 @@ export function Header() {
 
                 {/* Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                    {/* User Info */}
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.displayName || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    {/* Menu Items */}
                     <Link
-                      to="/dashboard"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                      to="/profile/edit"
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      Dashboard
+                      <span>⚙️</span>
+                      <span>Edit Profile</span>
                     </Link>
                     <Link
                       to="/appointments"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      My Appointments
+                      <span>📅</span>
+                      <span>My Appointments</span>
                     </Link>
                     <Link
                       to="/orders"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      My Orders
+                      <span>📦</span>
+                      <span>My Orders</span>
                     </Link>
                     <hr className="my-2" />
                     <button
@@ -118,9 +147,10 @@ export function Header() {
                         setShowUserMenu(false)
                         handleLogout()
                       }}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 transition"
+                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 transition"
                     >
-                      Logout
+                      <span>🚪</span>
+                      <span>Logout</span>
                     </button>
                   </div>
                 )}

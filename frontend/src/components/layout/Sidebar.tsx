@@ -8,19 +8,11 @@ interface NavItem {
   roles?: string[]
 }
 
-const getDashboardPath = (role: string): string => {
-  if (role === 'barber') return '/barber/dashboard'
-  if (role === 'cashier') return '/cashier/dashboard'
-  if (role === 'owner' || role === 'admin') return '/owner/dashboard'
-  return '/dashboard'
-}
-
 const navItems: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/appointments', label: 'Appointment', icon: '📅', roles: ['customer', 'barber', 'owner', 'admin'] },
   { path: '/queue', label: 'Antrian', icon: '👥' },
-  { path: '/services', label: 'Layanan', icon: '✂️' },
-  { path: '/products', label: 'Produk', icon: '🛍️' },
+  { path: '/services', label: 'Layanan', icon: '✂️', roles: ['barber', 'owner', 'admin'] },
+  { path: '/products', label: 'Produk', icon: '🛍️', roles: ['cashier', 'owner', 'admin'] },
   { path: '/orders', label: 'Pesanan', icon: '📦', roles: ['customer', 'cashier', 'owner', 'admin'] },
   { path: '/barbers', label: 'Barber', icon: '💈', roles: ['owner', 'admin'] },
   { path: '/users', label: 'Pengguna', icon: '👤', roles: ['admin'] },
@@ -30,20 +22,25 @@ export function Sidebar() {
   const location = useLocation()
   const { user } = useAuth()
 
+  // GUARD: Don't render sidebar if admin (should use admin panel)
+  if (user && user.role === 'admin') {
+    console.warn('🚨 ADMIN DETECTED IN CUSTOMER SIDEBAR - SHOULD NOT RENDER')
+    return null
+  }
+
   const filteredItems = navItems.filter(
     (item) => !item.roles || (user && item.roles.includes(user.role))
   )
 
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white">
-      <nav className="flex flex-col gap-1 p-4">
+    <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
+      <nav className="flex flex-col gap-1 p-4 flex-1">
         {filteredItems.map((item) => {
-          const path = item.path === '/dashboard' && user ? getDashboardPath(user.role) : item.path
-          const isActive = location.pathname === path
+          const isActive = location.pathname === item.path
           return (
             <Link
               key={item.path}
-              to={path}
+              to={item.path}
               className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
                 isActive
                   ? 'bg-blue-50 text-blue-700'
@@ -56,6 +53,24 @@ export function Sidebar() {
           )
         })}
       </nav>
+
+      {/* Profile Section - Bottom of Sidebar */}
+      <div className="border-t border-gray-200 p-4">
+        <Link
+          to="/profile/edit"
+          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+            location.pathname === '/profile/edit'
+              ? 'bg-blue-50 text-blue-700'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span className="text-xl">⚙️</span>
+          <div className="flex-1">
+            <div className="font-medium">Profile</div>
+            <div className="text-xs text-gray-500">{user?.email}</div>
+          </div>
+        </Link>
+      </div>
     </aside>
   )
 }
