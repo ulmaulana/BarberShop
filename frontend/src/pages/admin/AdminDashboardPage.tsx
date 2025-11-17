@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore'
-import { firestore } from '../../config/firebase'
+import { useAdminAuth } from '../../contexts/AdminAuthContext'
 
 interface Stats {
   totalRevenue: number
@@ -11,22 +10,27 @@ interface Stats {
 }
 
 export function AdminDashboardPage() {
+  const { user, loading: authLoading } = useAdminAuth()
+  
   const [stats, setStats] = useState<Stats>({
     totalRevenue: 0,
     netProfit: 0,
     pendingPayments: 0,
     avgTransaction: 0,
   })
-  const [loading, setLoading] = useState(true)
+  const [statsLoading, setStatsLoading] = useState(true)
   
   useEffect(() => {
-    loadStats()
-  }, [])
+    if (!authLoading) {
+      loadStats()
+    }
+  }, [authLoading])
   
   const loadStats = async () => {
     try {
-      // Load real stats dari Firestore
-      // Sementara mock data
+      // Simulate quick load - mock data
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
       setStats({
         totalRevenue: 15750000,
         netProfit: 8500000,
@@ -36,14 +40,17 @@ export function AdminDashboardPage() {
     } catch (error) {
       console.error('Failed to load stats:', error)
     } finally {
-      setLoading(false)
+      setStatsLoading(false)
     }
   }
   
-  if (loading) {
+  if (authLoading || statsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-spin">⏳</div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
       </div>
     )
   }

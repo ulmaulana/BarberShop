@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
-import { firestore } from '../../../config/firebase'
+import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { CloudinaryImageUpload } from '../../../components/common/CloudinaryImageUpload'
 
@@ -97,11 +97,11 @@ export function ProductFormModal({ product, onClose }: Props) {
       
       if (product) {
         // Update existing product
-        await updateDoc(doc(firestore, 'products', product.id), productData)
+        await updateDoc(doc(adminFirestore, 'products', product.id), productData)
         showToast('Product updated successfully', 'success')
       } else {
         // Create new product
-        await addDoc(collection(firestore, 'products'), {
+        await addDoc(collection(adminFirestore, 'products'), {
           ...productData,
           createdAt: serverTimestamp(),
         })

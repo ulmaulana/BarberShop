@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { firebaseAuth, firestore } from '../../config/firebase'
+import { adminAuth, adminFirestore } from '../../config/firebaseAdmin'
 import { useToast } from '../../contexts/ToastContext'
-import { useAuth } from '../../contexts/AuthContext'
 
 export function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -13,14 +12,13 @@ export function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const { showToast } = useToast()
-  const { user } = useAuth()
   
-  // Redirect jika sudah login sebagai admin
+  // Redirect jika sudah login sebagai admin (menggunakan adminAuth)
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const unsubscribe = onAuthStateChanged(adminAuth, async (user) => {
       if (user) {
         try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid))
+          const userDoc = await getDoc(doc(adminFirestore, 'users', user.uid))
           if (userDoc.exists() && userDoc.data().role === 'admin') {
             navigate('/adminpanel/dashboard', { replace: true })
           }
@@ -28,10 +26,10 @@ export function AdminLoginPage() {
           console.error('Error checking admin status:', error)
         }
       }
-    }
+    })
     
-    checkAdminStatus()
-  }, [user, navigate])
+    return () => unsubscribe()
+  }, [navigate])
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,15 +42,15 @@ export function AdminLoginPage() {
     try {
       setLoading(true)
       
-      // Sign in dengan Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password)
+      // Sign in dengan Firebase Auth (Admin)
+      const userCredential = await signInWithEmailAndPassword(adminAuth, email, password)
       const user = userCredential.user
       
-      // Check role di Firestore
-      const userDoc = await getDoc(doc(firestore, 'users', user.uid))
+      // Check role di Firestore (Admin)
+      const userDoc = await getDoc(doc(adminFirestore, 'users', user.uid))
       
       if (!userDoc.exists()) {
-        await firebaseAuth.signOut()
+        await adminAuth.signOut()
         showToast('User data not found', 'error')
         return
       }
@@ -61,7 +59,7 @@ export function AdminLoginPage() {
       
       // Verify role adalah admin
       if (userData.role !== 'admin') {
-        await firebaseAuth.signOut()
+        await adminAuth.signOut()
         showToast('Access denied. Admin access only.', 'error')
         return
       }
@@ -115,10 +113,15 @@ export function AdminLoginPage() {
           
           {/* Warning Banner */}
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <p className="text-sm text-red-800">
-              ⚠️ This area is restricted to authorized administrators only. 
-              All login attempts are logged.
+            <p className="text-sm text-red-800 font-semibold mb-2">
+              ⚠️ PENTING: Admin Panel - Akses Terbatas
             </p>
+            <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
+              <li>Hanya untuk administrator yang terauthorisasi</li>
+              <li><strong>Gunakan browser/incognito terpisah</strong> dari customer login</li>
+              <li>Login bersamaan akan menyebabkan konflik session</li>
+              <li>Semua aktivitas login tercatat</li>
+            </ul>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">

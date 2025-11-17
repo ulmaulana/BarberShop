@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore'
-import { firestore } from '../../../config/firebase'
+import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { CloudinaryImageUpload } from '../../../components/common/CloudinaryImageUpload'
 
@@ -81,11 +81,11 @@ export function ServiceFormModal({ service, onClose }: Props) {
       
       if (service) {
         // Update existing service
-        await updateDoc(doc(firestore, 'services', service.id), serviceData)
+        await updateDoc(doc(adminFirestore, 'services', service.id), serviceData)
         showToast('Service updated successfully', 'success')
       } else {
         // Create new service
-        await addDoc(collection(firestore, 'services'), {
+        await addDoc(collection(adminFirestore, 'services'), {
           ...serviceData,
           totalBookings: 0,
           createdAt: serverTimestamp(),

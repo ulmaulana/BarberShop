@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import { signOut } from 'firebase/auth'
-import { firebaseAuth } from '../../config/firebase'
+import { useAdminAuth } from '../../contexts/AdminAuthContext'
 import { useToast } from '../../contexts/ToastContext'
 
 export function AdminHeader() {
-  const { user } = useAuth()
+  const { user, logout } = useAdminAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
   const [showNotifications, setShowNotifications] = useState(false)
@@ -14,9 +12,9 @@ export function AdminHeader() {
   
   const handleLogout = async () => {
     try {
-      await signOut(firebaseAuth)
+      await logout()
       showToast('Logged out successfully', 'success')
-      navigate('/login')
+      navigate('/admin/login')
     } catch (error) {
       showToast('Failed to logout', 'error')
     }
