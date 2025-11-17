@@ -6,7 +6,6 @@ import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage'
 import { VerifyEmailPage } from './pages/auth/VerifyEmailPage'
-import { DashboardPage } from './pages/DashboardPage'
 import { ServicesListPage } from './pages/services/ServicesListPage'
 import { BookingPage } from './pages/booking/BookingPage'
 import { MyAppointmentsPage } from './pages/appointments/MyAppointmentsPage'
@@ -23,7 +22,10 @@ import { BarberDashboardPage } from './pages/barber/BarberDashboardPage'
 import { CashierDashboardPage } from './pages/cashier/CashierDashboardPage'
 import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage'
 import { ReviewAppointmentPage } from './pages/appointments/ReviewAppointmentPage'
+import { EditProfilePage } from './pages/profile/EditProfilePage'
+import { AdminAuthProvider } from './contexts/AdminAuthContext'
 import { AdminLayout } from './components/admin/AdminLayout'
+import { AdminProtectedRoute } from './components/admin/AdminProtectedRoute'
 import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { ProductsListPage as AdminProductsListPage } from './pages/admin/products/ProductsListPage'
@@ -48,20 +50,10 @@ export const appRouter = createBrowserRouter(
         <Route path="products/:productId" element={<ProductDetailPage />} />
         <Route path="cart" element={<ShoppingCartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="orders" element={<MyOrdersPage />} />
-        <Route path="orders/:orderId/confirmation" element={<OrderConfirmationPage />} />
         <Route path="booking" element={<BookingPage />} />
       </Route>
 
       <Route path="/" element={<Layout requireSidebar />}>
-        <Route
-          path="dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="appointments"
           element={
@@ -106,7 +98,15 @@ export const appRouter = createBrowserRouter(
           path="orders"
           element={
             <ProtectedRoute>
-              <OrdersListPage />
+              <MyOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="orders/:orderId/confirmation"
+          element={
+            <ProtectedRoute>
+              <OrderConfirmationPage />
             </ProtectedRoute>
           }
         />
@@ -142,18 +142,35 @@ export const appRouter = createBrowserRouter(
             </ProtectedRoute>
           }
         />
+        <Route
+          path="profile/edit"
+          element={
+            <ProtectedRoute>
+              <EditProfilePage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
       
-      {/* Admin Panel - Public Login */}
-      <Route path="/adminpanel" element={<AdminLoginPage />} />
+      {/* Admin Panel - Separate Auth Context */}
+      <Route
+        path="/adminpanel"
+        element={
+          <AdminAuthProvider>
+            <AdminLoginPage />
+          </AdminAuthProvider>
+        }
+      />
       
       {/* Admin Panel - Protected Routes */}
       <Route
         path="/adminpanel"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminLayout />
-          </ProtectedRoute>
+          <AdminAuthProvider>
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          </AdminAuthProvider>
         }
       >
         <Route path="dashboard" element={<AdminDashboardPage />} />

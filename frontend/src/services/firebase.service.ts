@@ -13,29 +13,39 @@ import {
   type QueryConstraint,
   type DocumentData,
   serverTimestamp,
+  type Firestore,
 } from 'firebase/firestore'
-import { firestore } from '../config/firebase'
+import { customerFirestore } from '../config/firebaseCustomer'
 import type { EntityId } from '../types'
 
 export class FirebaseService {
-  constructor(private collectionName: string) {}
+  private firestore: Firestore
+  private collectionName: string
+  
+  constructor(
+    collectionName: string,
+    firestoreInstance?: Firestore
+  ) {
+    this.collectionName = collectionName
+    this.firestore = firestoreInstance ?? customerFirestore
+  }
 
   async getById(id: EntityId): Promise<DocumentData | null> {
-    const docRef = doc(firestore, this.collectionName, id)
+    const docRef = doc(this.firestore, this.collectionName, id)
     const snapshot = await getDoc(docRef)
     if (!snapshot.exists()) return null
     return { id: snapshot.id, ...snapshot.data() }
   }
 
   async getAll(constraints: QueryConstraint[] = []): Promise<DocumentData[]> {
-    const collectionRef = collection(firestore, this.collectionName)
+    const collectionRef = collection(this.firestore, this.collectionName)
     const q = query(collectionRef, ...constraints)
     const snapshot = await getDocs(q)
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   }
 
   async create(data: Partial<DocumentData>): Promise<EntityId> {
-    const collectionRef = collection(firestore, this.collectionName)
+    const collectionRef = collection(this.firestore, this.collectionName)
     const docData = {
       ...data,
       createdAt: serverTimestamp(),
@@ -46,7 +56,7 @@ export class FirebaseService {
   }
 
   async update(id: EntityId, data: Partial<DocumentData>): Promise<void> {
-    const docRef = doc(firestore, this.collectionName, id)
+    const docRef = doc(this.firestore, this.collectionName, id)
     await updateDoc(docRef, {
       ...data,
       updatedAt: serverTimestamp(),
@@ -54,7 +64,7 @@ export class FirebaseService {
   }
 
   async delete(id: EntityId): Promise<void> {
-    const docRef = doc(firestore, this.collectionName, id)
+    const docRef = doc(this.firestore, this.collectionName, id)
     await deleteDoc(docRef)
   }
 
