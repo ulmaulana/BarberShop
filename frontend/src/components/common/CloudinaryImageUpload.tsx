@@ -35,38 +35,61 @@ export function CloudinaryImageUpload({ maxFiles, currentImages, onUploadComplet
       }
     }
     
+    // Check Cloudinary config
+    if (!cloudName || !uploadPreset) {
+      console.error('Cloudinary config missing:', { cloudName, uploadPreset })
+      alert('Cloudinary configuration is missing. Please check your .env file.')
+      return
+    }
+    
     setUploading(true)
     
     try {
       const uploadedUrls: string[] = []
       
       for (const file of files) {
+        console.log('Uploading file:', file.name, 'to folder:', folder)
+        
         const formData = new FormData()
         formData.append('file', file)
         formData.append('upload_preset', uploadPreset)
         formData.append('folder', folder)
         
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        )
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+        console.log('Upload URL:', uploadUrl)
+        
+        const response = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData,
+        })
         
         const data = await response.json()
+        console.log('Cloudinary response:', data)
+        
+        if (!response.ok) {
+          console.error('Upload error:', data)
+          throw new Error(data.error?.message || 'Upload failed')
+        }
         
         if (data.secure_url) {
           uploadedUrls.push(data.secure_url)
+          console.log('Upload successful:', data.secure_url)
+        } else {
+          console.error('No secure_url in response:', data)
         }
+      }
+      
+      if (uploadedUrls.length === 0) {
+        throw new Error('No images were uploaded successfully')
       }
       
       const newImages = [...images, ...uploadedUrls]
       setImages(newImages)
       onUploadComplete(newImages)
-    } catch (error) {
+      alert(`${uploadedUrls.length} image(s) uploaded successfully!`)
+    } catch (error: any) {
       console.error('Upload failed:', error)
-      alert('Failed to upload images')
+      alert(`Failed to upload images: ${error.message || 'Unknown error'}`)
     } finally {
       setUploading(false)
     }
