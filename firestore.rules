@@ -1,0 +1,97 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    function isOwner() {
+      return isAuthenticated() && (getUserRole() == 'owner' || getUserRole() == 'admin');
+    }
+    
+    // Users collection - users can read/update own profile, admins can manage all
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isUser(userId);
+      allow update: if isUser(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Services - public read, owner/admin can manage
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    
+    // Products - public read, cashier/owner/admin can manage
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    
+    // Appointments - users can read own, barbers/owner/admin can manage
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isOwner();
+    }
+    
+    // Queue - authenticated users
+    match /queue/{queueId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
+    // Orders - users can manage own orders
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isOwner();
+    }
+    
+    // Barbers - public read, owner/admin manage
+    match /barbers/{barberId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+    
+    // Reviews - users can create, all can read
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isOwner();
+    }
+    
+    // Transactions - restricted to owner/admin
+    match /transactions/{transactionId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
+    
+    // Notifications - users can read/update own
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+  }
+}

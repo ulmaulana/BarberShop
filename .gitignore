@@ -1,0 +1,100 @@
+# ===================================
+# SAHALA BARBER - Git Ignore
+# ===================================
+# Focused on actual project files only
+# ===================================
+
+# =============================
+# SENSITIVE FILES (CRITICAL!)
+# =============================
+# Environment variables
+.env
+.env.local
+frontend/.env
+firebase/functions/.env
+
+# Firebase credentials
+.firebaserc
+*-firebase-adminsdk-*.json
+service-account*.json
+
+# MCP Configuration
+.mcp.json
+
+# =============================
+# NODE.JS (Frontend & Functions)
+# =============================
+node_modules/
+frontend/node_modules/
+firebase/functions/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+build/
+firebase/functions/lib/
+
+# npm
+npm-debug.log*
+.npm
+.eslintcache
+
+# =============================
+# PYTHON (venv)
+# =============================
+venv/
+__pycache__/
+*.py[cod]
+*.so
+
+# =============================
+# FIREBASE
+# =============================
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+firebase-export-*/
+
+# =============================
+# IDE (VSCode)
+# =============================
+.vscode/
+*.code-workspace
+
+# =============================
+# WINDOWS
+# =============================
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =============================
+# LOGS
+# =============================
+logs/
+*.log
+
+# =============================
+# MISC
+# =============================
+# Backup files
+*.bak
+*.backup
+*~
+
+# Example
+!.env.example
+!.firebaserc.example
+!firebase.json
+!firestore.rules
+!firestore.indexes.json
+
+# cache
+specs
+ADMIN-SETUP.md
+CLOUDINARY-GUIDE.md
+PRE-PUSH-CHECKLIST.md
+SETUP.md
+constitution.md
