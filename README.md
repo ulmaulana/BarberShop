@@ -92,7 +92,7 @@ Sebelum memulai, pastikan Anda memiliki:
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/ulmaulana/E-BarberShop.git
+git clone https://github.com/ulmaulana/BarberShop.git
 cd E-BarberShop
 ```
 
