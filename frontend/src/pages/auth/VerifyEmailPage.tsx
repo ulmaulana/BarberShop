@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { sendEmailVerification } from 'firebase/auth'
-import { firebaseAuth } from '../../config/firebase'
+import { customerAuth } from '../../config/firebaseCustomer'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { Button } from '../../components/ui/Button'
@@ -15,11 +15,11 @@ export function VerifyEmailPage() {
   const [loading, setLoading] = useState(false)
 
   const handleResend = async () => {
-    if (!firebaseAuth.currentUser) return
+    if (!customerAuth.currentUser) return
     
     setLoading(true)
     try {
-      await sendEmailVerification(firebaseAuth.currentUser)
+      await sendEmailVerification(customerAuth.currentUser)
       showToast('Email verifikasi telah dikirim ulang', 'success')
     } catch (error) {
       showToast(handleError(error), 'error')
@@ -29,8 +29,8 @@ export function VerifyEmailPage() {
   }
 
   const handleCheckVerification = () => {
-    firebaseAuth.currentUser?.reload().then(() => {
-      if (firebaseAuth.currentUser?.emailVerified) {
+    customerAuth.currentUser?.reload().then(() => {
+      if (customerAuth.currentUser?.emailVerified) {
         showToast('Email berhasil diverifikasi!', 'success')
         navigate('/dashboard')
       } else {

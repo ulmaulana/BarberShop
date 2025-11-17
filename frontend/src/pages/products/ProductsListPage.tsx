@@ -6,7 +6,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
-import { CloudinaryService } from '../../services/cloudinary.service'
 import { formatCurrency } from '../../utils/format'
 import { handleError } from '../../utils/error'
 import type { Product } from '../../types'
@@ -217,9 +216,12 @@ export function ProductsListPage() {
                     <div className="relative h-64 bg-gray-100 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img
-                          src={CloudinaryService.getOptimizedUrl(product.images[0], { width: 500, height: 500 })}
+                          src={product.images[0]}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/500x500?text=No+Image'
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

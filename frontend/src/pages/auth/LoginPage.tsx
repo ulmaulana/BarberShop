@@ -21,10 +21,18 @@ export function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
+      // Check if user is admin - redirect to admin panel
+      if (user.role === 'admin') {
+        showToast('Redirecting to Admin Panel...', 'info')
+        navigate('/adminpanel/dashboard', { replace: true })
+        return
+      }
+      
+      // Regular customer redirect
       const redirectTo = searchParams.get('redirect') || '/'
       navigate(redirectTo, { replace: true })
     }
-  }, [user, navigate, searchParams])
+  }, [user, navigate, searchParams, showToast])
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -53,12 +61,8 @@ export function LoginPage() {
       await login(formData.email, formData.password)
       showToast('Login berhasil', 'success')
       
-      // Small delay to ensure auth state is updated
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Get redirect parameter from URL or default to homepage
-      const redirectTo = searchParams.get('redirect') || '/'
-      navigate(redirectTo, { replace: true })
+      // Auth state will update via useEffect
+      // Role-based redirect handled there
     } catch (error) {
       showToast(handleError(error), 'error')
     } finally {
@@ -76,6 +80,17 @@ export function LoginPage() {
             <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               Daftar sekarang
             </Link>
+          </p>
+        </div>
+
+        {/* Warning for Admin */}
+        <div className="mb-4 rounded-lg bg-yellow-50 border border-yellow-200 p-3">
+          <p className="text-xs text-yellow-800">
+            <strong>Admin?</strong> Silakan login melalui{' '}
+            <Link to="/adminpanel" className="font-medium underline">
+              Admin Panel
+            </Link>
+            {' '}di browser/tab terpisah untuk menghindari konflik session.
           </p>
         </div>
 

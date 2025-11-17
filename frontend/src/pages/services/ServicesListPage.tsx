@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
-import { CloudinaryService } from '../../services/cloudinary.service'
 import { formatCurrency } from '../../utils/format'
 import { handleError } from '../../utils/error'
 import type { Service } from '../../types'
@@ -140,9 +139,12 @@ export function ServicesListPage() {
                   <div className="h-56 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden relative">
                     {service.imageUrl ? (
                       <img
-                        src={CloudinaryService.getOptimizedUrl(service.imageUrl, { width: 600, height: 400 })}
+                        src={service.imageUrl}
                         alt={service.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://via.placeholder.com/600x400?text=No+Image'
+                        }}
                       />
                     ) : (
                       <span className="text-7xl">✂️</span>

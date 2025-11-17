@@ -6,7 +6,6 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
-import { CloudinaryService } from '../../services/cloudinary.service'
 import { formatCurrency } from '../../utils/format'
 import { handleError } from '../../utils/error'
 import type { Product } from '../../types'
@@ -97,9 +96,12 @@ export function ProductDetailPage() {
           <div className="aspect-square overflow-hidden rounded-lg bg-gray-200">
             {product.images && product.images.length > 0 ? (
               <img
-                src={CloudinaryService.getOptimizedUrl(product.images[0], { width: 800, height: 800 })}
+                src={product.images[0]}
                 alt={product.name}
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/800x800?text=No+Image'
+                }}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-gray-400">
