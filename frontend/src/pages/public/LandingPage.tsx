@@ -72,108 +72,102 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-          <div className="text-center">
-            <div className="mb-6">
-              <span className="inline-block text-6xl mb-4">💈</span>
+      <section className="relative bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+          <div className="max-w-3xl">
+            <div className="inline-block px-4 py-1.5 bg-slate-900 text-white text-sm font-medium rounded-full mb-6">
+              Professional Barber
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-              Professional Barber Service in Town
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-light text-slate-900 mb-6 tracking-tight leading-tight">
+              Crafting Your
+              <span className="block font-semibold">Best Look</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
-              Tingkatkan penampilan Anda dengan layanan potong rambut profesional, 
-              produk berkualitas, dan pengalaman booking yang mudah.
+            <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-2xl">
+              Layanan potong rambut profesional dengan pengalaman booking yang seamless. 
+              Tingkatkan kepercayaan diri Anda dengan sentuhan ahli.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/booking"
-                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg transition shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center px-8 py-3.5 text-base font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-2xl transition-all"
               >
-                📅 Book Appointment
+                Book Appointment
               </Link>
               <Link
                 to="/services"
-                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-blue-700 hover:bg-blue-600 rounded-lg transition border-2 border-white"
+                className="inline-flex items-center justify-center px-8 py-3.5 text-base font-medium text-slate-900 bg-white hover:bg-slate-50 border border-slate-300 rounded-2xl transition-all"
               >
                 View Services
               </Link>
             </div>
           </div>
         </div>
-        
-        {/* Wave decoration */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 0L60 10C120 20 240 40 360 46.7C480 53 600 47 720 43.3C840 40 960 40 1080 46.7C1200 53 1320 67 1380 73.3L1440 80V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V0Z" fill="#f9fafb"/>
-          </svg>
-        </div>
       </section>
 
       {/* Our Services Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-16">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl sm:text-4xl font-light text-slate-900 mb-3 tracking-tight">
                 Our Services
               </h2>
-              <p className="text-gray-600">Layanan profesional untuk penampilan terbaik Anda</p>
+              <p className="text-slate-600">Layanan profesional untuk penampilan terbaik Anda</p>
             </div>
             <Link
               to="/services"
-              className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2"
+              className="text-slate-900 hover:text-slate-700 font-medium flex items-center gap-2 group"
             >
-              View All →
+              View All 
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="text-gray-500">Loading services...</div>
+              <div className="text-slate-500">Loading services...</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden group"
+                  className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl transition-all overflow-hidden group"
                 >
                   {/* Service Image */}
-                  <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden">
+                  <div className="h-56 bg-slate-100 flex items-center justify-center overflow-hidden">
                     {service.imageUrl ? (
                       <img
                         src={service.imageUrl}
                         alt={service.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                       />
                     ) : (
-                      <span className="text-6xl">✂️</span>
+                      <div className="w-full h-full bg-slate-100"></div>
                     )}
                   </div>
 
                   {/* Service Info */}
                   <div className="p-6">
-                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full mb-3">
+                    <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium uppercase tracking-wide rounded-full mb-4">
                       {service.category}
                     </span>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-medium text-slate-900 mb-4">
                       {service.name}
                     </h3>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-blue-600">
+                    <div className="flex items-baseline justify-between mb-6 pb-6 border-b border-slate-100">
+                      <span className="text-2xl font-light text-slate-900">
                         Rp {service.price.toLocaleString('id-ID')}
                       </span>
-                      <span className="text-sm text-gray-600">
-                        ⏱️ {service.duration} min
+                      <span className="text-sm text-slate-500">
+                        {service.duration} min
                       </span>
                     </div>
                     <Link
                       to="/booking"
-                      className="block w-full text-center px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+                      className="block w-full text-center px-4 py-3 bg-slate-900 text-white font-medium hover:bg-slate-800 rounded-2xl transition-all"
                     >
                       Book Now
                     </Link>
@@ -184,7 +178,7 @@ export function LandingPage() {
           )}
 
           {!loading && services.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               No services available at the moment
             </div>
           )}
@@ -192,78 +186,82 @@ export function LandingPage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-slate-50 border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-16">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl sm:text-4xl font-light text-slate-900 mb-3 tracking-tight">
                 Featured Products
               </h2>
-              <p className="text-gray-600">Produk perawatan rambut berkualitas premium</p>
+              <p className="text-slate-600">Produk perawatan rambut berkualitas premium</p>
             </div>
             <Link
               to="/products"
-              className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2"
+              className="text-slate-900 hover:text-slate-700 font-medium flex items-center gap-2 group"
             >
-              Shop All →
+              Shop All 
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="text-gray-500">Loading products...</div>
+              <div className="text-slate-500">Loading products...</div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white border border-gray-200 rounded-xl hover:shadow-lg transition overflow-hidden group"
+                  className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl transition-all overflow-hidden group"
                 >
                   {/* Product Image */}
-                  <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <div className="h-56 bg-slate-100 flex items-center justify-center overflow-hidden">
                     {product.images && product.images[0] ? (
                       <img
                         src={product.images[0]}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                       />
                     ) : (
-                      <span className="text-6xl">📦</span>
+                      <div className="w-full h-full bg-slate-100"></div>
                     )}
                   </div>
 
                   {/* Product Info */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                  <div className="p-5">
+                    <h3 className="text-base font-medium text-slate-900 mb-3 line-clamp-2 min-h-[3rem]">
                       {product.name}
                     </h3>
-                    <div className="mb-3">
-                      <span className="text-xl font-bold text-blue-600">
+                    <div className="mb-4">
+                      <span className="text-xl font-light text-slate-900">
                         Rp {product.price.toLocaleString('id-ID')}
                       </span>
                     </div>
                     
                     {/* Rating */}
                     {product.rating && product.reviewCount ? (
-                      <div className="flex items-center gap-1 mb-3 text-sm text-gray-600">
-                        <span className="text-yellow-500">⭐</span>
-                        <span className="font-semibold">{product.rating}</span>
-                        <span>({product.reviewCount})</span>
+                      <div className="flex items-center gap-1.5 mb-4 text-sm text-slate-600">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} className={i < Math.floor(product.rating || 0) ? "text-slate-900" : "text-slate-300"}>★</span>
+                          ))}
+                        </div>
+                        <span className="text-slate-500">({product.reviewCount})</span>
                       </div>
                     ) : (
-                      <div className="h-5 mb-3"></div>
+                      <div className="h-5 mb-4"></div>
                     )}
 
-                    <div className="text-sm text-gray-600 mb-4">
+                    <div className="text-sm text-slate-500 mb-4">
                       {product.stock} in stock
                     </div>
 
                     <Link
                       to="/products"
-                      className="block w-full text-center px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition"
+                      className="block w-full text-center px-4 py-2.5 bg-slate-900 text-white font-medium hover:bg-slate-800 rounded-2xl transition-all"
                     >
-                      Add to Cart 🛒
+                      Add to Cart
                     </Link>
                   </div>
                 </div>
@@ -272,7 +270,7 @@ export function LandingPage() {
           )}
 
           {!loading && products.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               No products available at the moment
             </div>
           )}
@@ -280,44 +278,50 @@ export function LandingPage() {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Sahala Barber?
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-light text-slate-900 mb-4 tracking-tight">
+              Why Choose Us
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-slate-600 max-w-2xl mx-auto">
               Kami berkomitmen memberikan pengalaman terbaik untuk setiap pelanggan
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="text-5xl mb-4">👨‍💼</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-slate-900 rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-3">
                 Professional Barbers
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-600 leading-relaxed">
                 Tim barber berpengalaman dan terlatih untuk hasil terbaik
               </p>
             </div>
 
-            <div className="text-center p-6">
-              <div className="text-5xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-slate-900 rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-3">
                 Easy Booking
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-600 leading-relaxed">
                 Sistem booking online yang mudah dan praktis, tanpa antrian
               </p>
             </div>
 
-            <div className="text-center p-6">
-              <div className="text-5xl mb-4">✨</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-slate-900 rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-3">
                 Premium Products
               </h3>
-              <p className="text-gray-600">
+              <p className="text-slate-600 leading-relaxed">
                 Produk perawatan rambut berkualitas tinggi untuk Anda
               </p>
             </div>
@@ -326,53 +330,53 @@ export function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+      <section className="py-24 bg-slate-900 text-white border-t border-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+          <h2 className="text-3xl sm:text-4xl font-light mb-4 tracking-tight">
             Ready for Your Best Look?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-lg text-slate-400 mb-10 leading-relaxed">
             Book your appointment now and experience professional barber service
           </p>
           <Link
             to="/booking"
-            className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-blue-600 bg-white hover:bg-gray-100 rounded-lg transition shadow-lg"
+            className="inline-flex items-center justify-center px-8 py-3.5 text-base font-medium text-slate-900 bg-white hover:bg-slate-100 rounded-2xl transition-all group"
           >
-            Book Appointment Now →
+            Book Appointment Now 
+            <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="bg-slate-950 text-slate-400 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-3xl">💈</span>
-                <span className="text-2xl font-bold text-white">Sahala Barber</span>
+              <div className="mb-4">
+                <span className="text-2xl font-light text-white">Sahala Barber</span>
               </div>
-              <p className="text-gray-400 mb-4">
+              <p className="text-slate-500 leading-relaxed max-w-md">
                 Professional barber service dengan layanan booking online, 
                 produk berkualitas, dan pengalaman terbaik untuk Anda.
               </p>
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
+              <h3 className="text-white font-medium mb-4">Quick Links</h3>
+              <ul className="space-y-3">
                 <li>
-                  <Link to="/services" className="hover:text-white transition">
+                  <Link to="/services" className="text-slate-500 hover:text-white transition">
                     Services
                   </Link>
                 </li>
                 <li>
-                  <Link to="/products" className="hover:text-white transition">
+                  <Link to="/products" className="text-slate-500 hover:text-white transition">
                     Products
                   </Link>
                 </li>
                 <li>
-                  <Link to="/booking" className="hover:text-white transition">
+                  <Link to="/booking" className="text-slate-500 hover:text-white transition">
                     Book Appointment
                   </Link>
                 </li>
@@ -380,23 +384,25 @@ export function LandingPage() {
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-4">Contact</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>📍 Jl. Merdeka No. 123</li>
-                <li>📞 +62 812-3456-7890</li>
-                <li>✉️ info@sahalabarber.com</li>
+              <h3 className="text-white font-medium mb-4">Contact</h3>
+              <ul className="space-y-3 text-slate-500">
+                <li>Jl. Merdeka No. 123</li>
+                <li>+62 812-3456-7890</li>
+                <li>info@sahalabarber.com</li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-            <p>
-              © 2025 Sahala Barber | 
-              <Link to="/about" className="hover:text-white transition mx-2">About</Link> | 
-              <Link to="/contact" className="hover:text-white transition mx-2">Contact</Link> | 
-              <Link to="/privacy" className="hover:text-white transition mx-2">Privacy</Link> | 
-              <Link to="/terms" className="hover:text-white transition mx-2">Terms</Link>
+          <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-slate-600 text-sm">
+              © 2025 Sahala Barber. All rights reserved.
             </p>
+            <div className="flex gap-6 text-sm">
+              <Link to="/about" className="text-slate-600 hover:text-white transition">About</Link>
+              <Link to="/contact" className="text-slate-600 hover:text-white transition">Contact</Link>
+              <Link to="/privacy" className="text-slate-600 hover:text-white transition">Privacy</Link>
+              <Link to="/terms" className="text-slate-600 hover:text-white transition">Terms</Link>
+            </div>
           </div>
         </div>
       </footer>

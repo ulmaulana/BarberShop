@@ -23,7 +23,7 @@ export function LoginPage() {
     if (user) {
       // Check if user is admin - redirect to admin panel
       if (user.role === 'admin') {
-        showToast('Redirecting to Admin Panel...', 'info')
+        showToast('Mengalihkan ke Panel Admin...', 'info')
         navigate('/adminpanel/dashboard', { replace: true })
         return
       }
