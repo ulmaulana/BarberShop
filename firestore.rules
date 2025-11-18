@@ -58,6 +58,14 @@ service cloud.firestore {
       allow delete: if isAuthenticated();
     }
     
+    // Cart - users can manage own cart items
+    match /cart/{cartId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+    
     // Orders - users can manage own orders
     match /orders/{orderId} {
       allow read: if isAuthenticated();
@@ -92,6 +100,12 @@ service cloud.firestore {
       allow create: if isOwner();
       allow update: if isAuthenticated();
       allow delete: if isAuthenticated();
+    }
+    
+    // Vouchers - public read, owner/admin manage
+    match /vouchers/{voucherId} {
+      allow read: if true;
+      allow write: if isOwner();
     }
   }
 }
