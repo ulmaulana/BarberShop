@@ -33,7 +33,7 @@ export function Sidebar() {
   )
 
   return (
-    <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
+    <aside className="hidden md:flex w-64 border-r border-gray-200 bg-white flex-col">
       <nav className="flex flex-col gap-1 p-4 flex-1">
         {filteredItems.map((item) => {
           const isActive = location.pathname === item.path

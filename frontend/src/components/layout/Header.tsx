@@ -11,6 +11,7 @@ export function Header() {
   const location = useLocation()
   const { showToast } = useToast()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [cartCount, setCartCount] = useState(0)
 
   // CRITICAL: Detect admin in customer header
@@ -19,7 +20,7 @@ export function Header() {
       const isAdminRoute = location.pathname.startsWith('/adminpanel')
       if (!isAdminRoute) {
         console.warn('🚨 ADMIN IN CUSTOMER HEADER - REDIRECTING')
-        showToast('Admin detected! Use Admin Panel instead.', 'error')
+        showToast('Admin terdeteksi! Gunakan Panel Admin.', 'error')
         navigate('/adminpanel/dashboard', { replace: true })
       }
     }
@@ -51,26 +52,71 @@ export function Header() {
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 hover:text-blue-600 transition">
-          <span className="text-2xl">💈</span>
-          <span>Sahala Barber</span>
-        </Link>
+        {/* Mobile Hamburger + Logo */}
+        <div className="flex items-center gap-3">
+          {/* Hamburger Menu - Mobile Only */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="md:hidden p-2 text-gray-700 hover:text-blue-600 transition"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMobileMenu ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
 
-        {/* Navigation Menu */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 hover:text-blue-600 transition">
+            <span className="text-xl sm:text-2xl">💈</span>
+            <span className="hidden sm:inline">Sahala Barber</span>
+          </Link>
+        </div>
+
+        {/* Desktop Navigation Menu */}
+        <nav className="hidden md:flex items-center gap-2 bg-gray-50 rounded-full px-3 py-2 shadow-sm">
+          <Link 
+            to="/" 
+            className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+              location.pathname === '/' 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`}
+          >
             Home
           </Link>
-          <Link to="/services" className="text-gray-700 hover:text-blue-600 font-medium transition">
+          <Link 
+            to="/services" 
+            className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+              location.pathname === '/services' 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`}
+          >
             Services
           </Link>
-          <Link to="/products" className="text-gray-700 hover:text-blue-600 font-medium transition">
+          <Link 
+            to="/products" 
+            className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+              location.pathname === '/products' 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`}
+          >
             Products
           </Link>
-          <Link to="/booking" className="text-gray-700 hover:text-blue-600 font-medium transition">
+          <Link 
+            to="/booking" 
+            className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+              location.pathname === '/booking' 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`}
+          >
             Booking
           </Link>
         </nav>
@@ -105,7 +151,7 @@ export function Header() {
 
                 {/* Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-gray-200 py-2">
                     {/* User Info */}
                     <div className="px-4 py-2 border-b border-gray-200">
                       <p className="text-sm font-medium text-gray-900">
@@ -166,7 +212,7 @@ export function Header() {
               </Link>
               <Link
                 to="/register"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition shadow-sm"
+                className="px-6 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium transition shadow-sm"
               >
                 Sign Up
               </Link>
@@ -175,21 +221,57 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div className="md:hidden border-t border-gray-200 px-4 py-3 flex justify-around bg-gray-50">
-        <Link to="/" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-          Home
-        </Link>
-        <Link to="/services" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-          Services
-        </Link>
-        <Link to="/products" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-          Products
-        </Link>
-        <Link to="/booking" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-          Booking
-        </Link>
-      </div>
+      {/* Mobile Hamburger Menu Dropdown */}
+      {showMobileMenu && (
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
+          <nav className="flex flex-col">
+            <Link 
+              to="/" 
+              onClick={() => setShowMobileMenu(false)}
+              className={`px-6 py-3 font-medium transition-all border-l-4 ${
+                location.pathname === '/' 
+                  ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/services" 
+              onClick={() => setShowMobileMenu(false)}
+              className={`px-6 py-3 font-medium transition-all border-l-4 ${
+                location.pathname === '/services' 
+                  ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Services
+            </Link>
+            <Link 
+              to="/products" 
+              onClick={() => setShowMobileMenu(false)}
+              className={`px-6 py-3 font-medium transition-all border-l-4 ${
+                location.pathname === '/products' 
+                  ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Products
+            </Link>
+            <Link 
+              to="/booking" 
+              onClick={() => setShowMobileMenu(false)}
+              className={`px-6 py-3 font-medium transition-all border-l-4 ${
+                location.pathname === '/booking' 
+                  ? 'border-blue-600 bg-blue-50 text-blue-700' 
+                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Booking
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   )
 }
