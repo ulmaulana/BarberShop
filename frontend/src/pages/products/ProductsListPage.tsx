@@ -76,13 +76,13 @@ export function ProductsListPage() {
     event.preventDefault() // Prevent Link navigation
     
     if (!user) {
-      showToast('Please login to add items to cart', 'error')
+      showToast('Silakan login untuk menambahkan ke keranjang', 'error')
       navigate('/login?redirect=/products')
       return
     }
 
     if (product.stock === 0) {
-      showToast('Product is out of stock', 'error')
+      showToast('Produk sedang habis', 'error')
       return
     }
 
@@ -97,7 +97,7 @@ export function ProductsListPage() {
       const existingItems = await getDocs(q)
 
       if (!existingItems.empty) {
-        showToast('Product already in cart', 'info')
+        showToast('Produk sudah ada di keranjang', 'info')
         navigate('/cart')
         return
       }
@@ -110,10 +110,10 @@ export function ProductsListPage() {
         addedAt: new Date().toISOString()
       })
 
-      showToast('Added to cart successfully!', 'success')
+      showToast('Berhasil ditambahkan ke keranjang!', 'success')
     } catch (error) {
       console.error('Error adding to cart:', error)
-      showToast('Failed to add to cart', 'error')
+      showToast('Gagal menambahkan ke keranjang', 'error')
     }
   }
 
@@ -134,25 +134,25 @@ export function ProductsListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Shop Products</h1>
-          <p className="text-gray-600">Produk perawatan rambut berkualitas premium</p>
+        <div className="mb-12">
+          <h1 className="text-4xl sm:text-5xl font-light text-slate-900 mb-4 tracking-tight">Shop Products</h1>
+          <p className="text-lg text-slate-600">Produk perawatan rambut berkualitas premium</p>
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
             {/* Search Bar */}
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="🔍 Search products..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
               />
             </div>
 
@@ -160,7 +160,7 @@ export function ProductsListPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900"
             >
               <option value="name">Sort by Name</option>
               <option value="price-low">Price: Low to High</option>
@@ -169,16 +169,16 @@ export function ProductsListPage() {
           </div>
 
           {/* Category Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-700">Filters:</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm font-medium text-slate-700">Categories:</span>
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === cat.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
                 {cat.label}
@@ -188,18 +188,17 @@ export function ProductsListPage() {
         </div>
 
         {/* Results Info */}
-        <div className="mb-4 text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> of {products.length} products
+        <div className="mb-8 text-sm text-slate-600">
+          Showing <span className="font-medium text-slate-900">{filteredProducts.length}</span> of {products.length} products
         </div>
 
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-lg">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="text-center py-20 bg-slate-50 border border-slate-200 rounded-3xl">
+            <h3 className="text-xl font-medium text-slate-900 mb-2">
               No products found
             </h3>
-            <p className="text-gray-600">
+            <p className="text-slate-600">
               Try adjusting your filters or search query
             </p>
           </div>
@@ -211,31 +210,29 @@ export function ProductsListPage() {
                   to={`/products/${product.id}`}
                   className="group"
                 >
-                  <div className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col">
+                  <div className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl transition-all overflow-hidden h-full flex flex-col">
                     {/* Product Image */}
-                    <div className="relative h-64 bg-gray-100 overflow-hidden">
+                    <div className="relative h-64 bg-slate-100 overflow-hidden">
                       {product.images && product.images.length > 0 ? (
                         <img
                           src={product.images[0]}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           onError={(e) => {
                             e.currentTarget.src = 'https://via.placeholder.com/500x500?text=No+Image'
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-6xl">📦</span>
-                        </div>
+                        <div className="w-full h-full bg-slate-100"></div>
                       )}
 
                       {/* Stock Badges */}
                       {product.stock === 0 ? (
-                        <div className="absolute top-4 right-4 px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full shadow-lg">
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-slate-900 text-white text-xs font-medium uppercase tracking-wide rounded-full">
                           OUT OF STOCK
                         </div>
                       ) : product.stock < product.lowStockThreshold ? (
-                        <div className="absolute top-4 right-4 px-3 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full shadow-lg">
+                        <div className="absolute top-4 right-4 px-3 py-1 bg-amber-500 text-white text-xs font-medium uppercase tracking-wide rounded-full">
                           LOW STOCK
                         </div>
                       ) : null}
@@ -243,47 +240,50 @@ export function ProductsListPage() {
 
                     {/* Product Info */}
                     <div className="p-5 flex flex-col flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
+                      <h3 className="text-base font-medium text-slate-900 mb-2 line-clamp-2 min-h-[3rem]">
                         {product.name}
                       </h3>
                       
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-1">
+                      <p className="text-sm text-slate-600 mb-4 line-clamp-2 flex-1 leading-relaxed">
                         {product.description || 'Premium quality product'}
                       </p>
 
                       {/* Price & Stock */}
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-baseline justify-between mb-4">
                         <div>
-                          <p className="text-2xl font-bold text-blue-600">
+                          <p className="text-xl font-light text-slate-900">
                             {formatCurrency(product.price)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-gray-500">Stock</p>
-                          <p className="text-lg font-semibold text-gray-900">
+                          <p className="text-xs text-slate-500 uppercase tracking-wide">Stock</p>
+                          <p className="text-base font-medium text-slate-900">
                             {product.stock}
                           </p>
                         </div>
                       </div>
 
                       {/* Rating (if available) */}
-                      <div className="flex items-center gap-1 mb-4 text-sm">
-                        <span className="text-yellow-500">⭐</span>
-                        <span className="font-semibold">4.8</span>
-                        <span className="text-gray-500">(35)</span>
+                      <div className="flex items-center gap-1.5 mb-4 text-sm">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} className={i < 4 ? "text-slate-900" : "text-slate-300"}>★</span>
+                          ))}
+                        </div>
+                        <span className="text-slate-500">(35)</span>
                       </div>
 
                       {/* Add to Cart Button */}
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
                         disabled={product.stock === 0}
-                        className={`w-full py-3 rounded-lg font-semibold transition shadow-md ${
+                        className={`w-full py-2.5 rounded-2xl font-medium transition-all ${
                           product.stock === 0
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-yellow-500 text-white hover:bg-yellow-600 hover:shadow-lg'
+                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}
                       >
-                        {product.stock === 0 ? 'Out of Stock' : 'Add to Cart 🛒'}
+                        {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>

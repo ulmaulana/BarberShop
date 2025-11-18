@@ -72,38 +72,38 @@ export function ServicesListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Services</h1>
-          <p className="text-gray-600">Layanan profesional untuk penampilan terbaik Anda</p>
+        <div className="mb-12">
+          <h1 className="text-4xl sm:text-5xl font-light text-slate-900 mb-4 tracking-tight">Our Services</h1>
+          <p className="text-lg text-slate-600">Layanan profesional untuk penampilan terbaik Anda</p>
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mb-8">
           {/* Search Bar */}
-          <div className="mb-4">
+          <div className="mb-6">
             <input
               type="text"
-              placeholder="🔍 Search services..."
+              placeholder="Search services..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
             />
           </div>
 
           {/* Category Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-700">Categories:</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm font-medium text-slate-700">Categories:</span>
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === cat.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
                 {cat.label}
@@ -113,18 +113,17 @@ export function ServicesListPage() {
         </div>
 
         {/* Results Info */}
-        <div className="mb-4 text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{filteredServices.length}</span> of {services.length} services
+        <div className="mb-8 text-sm text-slate-600">
+          Showing <span className="font-medium text-slate-900">{filteredServices.length}</span> of {services.length} services
         </div>
 
         {/* Services Grid */}
         {filteredServices.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-lg">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="text-center py-20 bg-slate-50 border border-slate-200 rounded-3xl">
+            <h3 className="text-xl font-medium text-slate-900 mb-2">
               No services found
             </h3>
-            <p className="text-gray-600">
+            <p className="text-slate-600">
               Try adjusting your filters or search query
             </p>
           </div>
@@ -133,51 +132,50 @@ export function ServicesListPage() {
               {filteredServices.map((service) => (
                 <div
                   key={service.id}
-                  className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group"
+                  className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl transition-all overflow-hidden group"
                 >
                   {/* Service Image */}
-                  <div className="h-56 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden relative">
+                  <div className="h-56 bg-slate-100 flex items-center justify-center overflow-hidden relative">
                     {service.imageUrl ? (
                       <img
                         src={service.imageUrl}
                         alt={service.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                         onError={(e) => {
                           e.currentTarget.src = 'https://via.placeholder.com/600x400?text=No+Image'
                         }}
                       />
                     ) : (
-                      <span className="text-7xl">✂️</span>
+                      <div className="w-full h-full bg-slate-100"></div>
                     )}
                     
                     {/* Category Badge */}
-                    <div className="absolute top-4 left-4 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-semibold text-gray-900 shadow-lg">
+                    <div className="absolute top-4 left-4 px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium uppercase tracking-wide rounded-full">
                       {service.category}
                     </div>
                   </div>
 
                   {/* Service Info */}
                   <div className="p-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    <h3 className="text-xl font-medium text-slate-900 mb-3">
                       {service.name}
                     </h3>
                     
-                    <p className="text-gray-600 mb-4 line-clamp-2 min-h-[3rem]">
+                    <p className="text-slate-600 mb-4 line-clamp-2 min-h-[3rem] text-sm leading-relaxed">
                       {service.description || 'Professional service dengan hasil terbaik'}
                     </p>
 
                     {/* Price & Duration */}
-                    <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
+                    <div className="flex items-baseline justify-between mb-6 pb-6 border-b border-slate-100">
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Price</p>
-                        <p className="text-2xl font-bold text-blue-600">
+                        <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide">Price</p>
+                        <p className="text-2xl font-light text-slate-900">
                           {formatCurrency(service.price)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-500 mb-1">Duration</p>
-                        <p className="text-lg font-semibold text-gray-900 flex items-center gap-1">
-                          <span>⏱️</span>
+                        <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide">Duration</p>
+                        <p className="text-base font-medium text-slate-900">
                           {service.durationMinutes} min
                         </p>
                       </div>
@@ -186,7 +184,7 @@ export function ServicesListPage() {
                     {/* Book Button */}
                     <Link
                       to={`/booking?serviceId=${service.id}`}
-                      className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition shadow-md hover:shadow-lg"
+                      className="block w-full text-center px-6 py-3 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 font-medium transition-all"
                     >
                       Book Now
                     </Link>

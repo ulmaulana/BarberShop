@@ -84,27 +84,27 @@ export function QueuePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Antrian Walk-In</h1>
-        <p className="mt-2 text-gray-600">Bergabung dengan antrian untuk layanan tanpa appointment</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Antrian Walk-In</h1>
+        <p className="mt-2 text-sm sm:text-base text-gray-600">Bergabung dengan antrian untuk layanan tanpa appointment</p>
       </div>
 
       {myQueue ? (
         <Card className="border-2 border-blue-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Status Antrian Anda</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Status Antrian Anda</h3>
                 <div className="mt-3 space-y-2">
-                  <p className="text-3xl font-bold text-blue-600">#{myQueue.position}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">#{myQueue.position}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Estimasi tunggu: <span className="font-medium">{myQueue.estimatedWaitMinutes} menit</span>
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     Bergabung: {formatTime(myQueue.joinedAt)}
                   </p>
                 </div>
               </div>
-              <Button variant="danger" onClick={handleLeaveQueue}>
+              <Button variant="danger" onClick={handleLeaveQueue} className="w-full sm:w-auto text-sm">
                 Keluar dari Antrian
               </Button>
             </div>
@@ -112,18 +112,18 @@ export function QueuePage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Bergabung dengan Antrian</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Bergabung dengan Antrian</h3>
+                <p className="mt-2 text-xs sm:text-sm text-gray-600">
                   Saat ini ada <span className="font-medium">{queue.length} orang</span> dalam antrian.
                   {queue.length > 0 && (
                     <span> Estimasi waktu tunggu: <span className="font-medium">{queue.length * 20} menit</span></span>
                   )}
                 </p>
               </div>
-              <Button onClick={handleJoinQueue} isLoading={joining}>
+              <Button onClick={handleJoinQueue} isLoading={joining} className="w-full sm:w-auto text-sm">
                 Gabung Antrian
               </Button>
             </div>
@@ -132,25 +132,25 @@ export function QueuePage() {
       )}
 
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Antrian Saat Ini</h2>
+        <h2 className="mb-4 text-lg sm:text-xl font-semibold text-gray-900">Antrian Saat Ini</h2>
         {queue.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-gray-600">
+            <CardContent className="py-12 text-center text-sm sm:text-base text-gray-600">
               Tidak ada antrian saat ini.
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {queue.map((entry) => (
               <Card key={entry.id} className={entry.id === myQueue?.id ? 'border-2 border-blue-500' : ''}>
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">#{entry.position}</p>
-                      <p className="text-xs text-gray-600">{formatTime(entry.joinedAt)}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">#{entry.position}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-600">{formatTime(entry.joinedAt)}</p>
                     </div>
                     {entry.id === myQueue?.id && (
-                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                      <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] sm:text-xs font-medium text-blue-800">
                         Anda
                       </span>
                     )}

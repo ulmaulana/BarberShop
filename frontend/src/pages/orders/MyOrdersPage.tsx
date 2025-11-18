@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore'
 import { firestore } from '../../config/firebase'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
@@ -12,6 +12,7 @@ interface OrderItem {
   productName: string
   quantity: number
   price: number
+  productImage?: string
 }
 
 interface Order {
@@ -47,7 +48,7 @@ export function MyOrdersPage() {
   useEffect(() => {
     if (user && user.role === 'admin') {
       console.warn('🚨 ADMIN in MyOrdersPage - REDIRECTING')
-      showToast('Admin should use Admin Panel!', 'error')
+      showToast('Admin harus menggunakan Panel Admin!', 'error')
       navigate('/adminpanel/dashboard', { replace: true })
       return
     }
@@ -73,15 +74,42 @@ export function MyOrdersPage() {
       )
       const snapshot = await getDocs(q)
       
-      const ordersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Order[]
+      // Load orders with product images
+      const ordersData = await Promise.all(
+        snapshot.docs.map(async (orderDoc) => {
+          const orderData = orderDoc.data()
+          
+          // Fetch product images for each item
+          const itemsWithImages = await Promise.all(
+            orderData.items.map(async (item: OrderItem) => {
+              try {
+                const productDoc = await getDoc(doc(firestore, 'products', item.productId))
+                if (productDoc.exists()) {
+                  const productData = productDoc.data()
+                  return {
+                    ...item,
+                    productImage: productData.images?.[0] || null
+                  }
+                }
+              } catch (error) {
+                console.error(`Error loading product ${item.productId}:`, error)
+              }
+              return item
+            })
+          )
+          
+          return {
+            id: orderDoc.id,
+            ...orderData,
+            items: itemsWithImages
+          } as Order
+        })
+      )
 
       setOrders(ordersData)
     } catch (error) {
       console.error('Error loading orders:', error)
-      showToast('Failed to load orders', 'error')
+      showToast('Gagal memuat pesanan', 'error')
     } finally {
       setLoading(false)
     }
@@ -94,10 +122,10 @@ export function MyOrdersPage() {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      pending_payment: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending Payment' },
-      confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Confirmed' },
-      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
-      payment_rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Payment Rejected' },
+      pending_payment: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Menunggu Pembayaran' },
+      confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Dikonfirmasi' },
+      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Selesai' },
+      payment_rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Pembayaran Ditolak' },
     }
     
     const style = styles[status as keyof typeof styles] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status }
@@ -111,12 +139,10 @@ export function MyOrdersPage() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('id-ID', { 
       year: 'numeric', 
-      month: 'short', 
+      month: 'long', 
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     })
   }
 
@@ -132,31 +158,31 @@ export function MyOrdersPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-            <p className="text-gray-600 mt-1">Track and manage your product orders</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pesanan Saya</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Lacak dan kelola pesanan produk Anda</p>
           </div>
           <Link
             to="/products"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition shadow-sm"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition shadow-sm text-center text-sm sm:text-base whitespace-nowrap"
           >
-            Shop Products
+            Belanja Produk
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
+        <div className="flex gap-1 sm:gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
           {[
-            { key: 'all', label: 'All Orders' },
-            { key: 'pending_payment', label: 'Pending Payment' },
-            { key: 'confirmed', label: 'Confirmed' },
-            { key: 'completed', label: 'Completed' }
+            { key: 'all', label: 'Semua Pesanan' },
+            { key: 'pending_payment', label: 'Menunggu' },
+            { key: 'confirmed', label: 'Dikonfirmasi' },
+            { key: 'completed', label: 'Selesai' }
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as TabType)}
-              className={`px-6 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+              className={`px-3 sm:px-6 py-2 sm:py-3 font-medium transition-colors border-b-2 whitespace-nowrap text-sm sm:text-base ${
                 activeTab === tab.key
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -172,19 +198,19 @@ export function MyOrdersPage() {
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No {activeTab === 'all' ? '' : activeTab.replace('_', ' ')} orders
+              {activeTab === 'all' ? 'Tidak ada pesanan' : `Tidak ada pesanan ${activeTab === 'pending_payment' ? 'menunggu' : activeTab === 'confirmed' ? 'dikonfirmasi' : 'selesai'}`}
             </h3>
             <p className="text-gray-600 mb-6">
               {activeTab === 'all' 
-                ? "You haven't placed any orders yet. Start shopping!"
-                : `You don't have any ${activeTab.replace('_', ' ')} orders.`
+                ? "Anda belum pernah melakukan pemesanan. Mulai belanja sekarang!"
+                : `Anda tidak memiliki pesanan ${activeTab === 'pending_payment' ? 'yang menunggu pembayaran' : activeTab === 'confirmed' ? 'yang dikonfirmasi' : 'yang selesai'}.`
               }
             </p>
             <Link
               to="/products"
               className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
             >
-              Browse Products
+              Jelajahi Produk
             </Link>
           </div>
         ) : (
@@ -192,24 +218,24 @@ export function MyOrdersPage() {
             {filteredOrders.map((order) => (
               <div
                 key={order.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6"
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6"
               >
                 {/* Order Header */}
-                <div className="flex items-start justify-between mb-4 pb-4 border-b border-gray-200">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Order #{order.id.slice(0, 12).toUpperCase()}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 pb-4 border-b border-gray-200">
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                        Order #{order.id.slice(0, 8).toUpperCase()}
                       </h3>
                       {getStatusBadge(order.status)}
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Placed on {formatDate(order.createdAt)}
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Dipesan pada {formatDate(order.createdAt)}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                  <div className="text-left sm:text-right">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">Total Pembayaran</p>
+                    <p className="text-xl sm:text-2xl font-bold text-blue-600">
                       {formatCurrency(order.total)}
                     </p>
                   </div>
@@ -217,67 +243,93 @@ export function MyOrdersPage() {
 
                 {/* Order Items */}
                 <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Items:</h4>
-                  <div className="space-y-2">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">Produk:</h4>
+                  <div className="space-y-3">
                     {order.items.slice(0, 3).map((item, index) => (
-                      <div key={index} className="flex justify-between text-sm">
-                        <span className="text-gray-700">
-                          • {item.productName} ({item.quantity}x)
-                        </span>
-                        <span className="font-medium text-gray-900">
+                      <div key={index} className="flex items-center gap-2 sm:gap-3">
+                        {/* Product Image */}
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                          {item.productImage ? (
+                            <img
+                              src={item.productImage}
+                              alt={item.productName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://via.placeholder.com/64x64?text=No+Image'
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px] sm:text-xs">
+                              Tanpa Gambar
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                            {item.productName}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-gray-600">
+                            Qty: {item.quantity} × {formatCurrency(item.price)}
+                          </p>
+                        </div>
+                        
+                        {/* Price */}
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">
                           {formatCurrency(item.price * item.quantity)}
-                        </span>
+                        </div>
                       </div>
                     ))}
                     {order.items.length > 3 && (
-                      <p className="text-sm text-gray-500">
-                        + {order.items.length - 3} more items
+                      <p className="text-xs sm:text-sm text-gray-500 pl-14 sm:pl-20">
+                        + {order.items.length - 3} produk lainnya
                       </p>
                     )}
                   </div>
                 </div>
 
                 {/* Shipping & Payment Info */}
-                <div className="grid md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Shipping To:</p>
-                    <p className="text-sm font-medium text-gray-900">{order.shippingInfo.fullName}</p>
-                    <p className="text-sm text-gray-700">{order.shippingInfo.phone}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Dikirim Ke:</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900">{order.shippingInfo.fullName}</p>
+                    <p className="text-xs sm:text-sm text-gray-700">{order.shippingInfo.phone}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Payment Method:</p>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
-                      {order.paymentMethod === 'transfer' ? 'Transfer (QRIS)' : 'Cash on Pickup'}
+                    <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Metode Pembayaran:</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 capitalize">
+                      {order.paymentMethod === 'transfer' ? 'Transfer (QRIS)' : 'Ambil di Barber'}
                     </p>
                     {order.paymentProof && (
-                      <p className="text-xs text-green-600 mt-1">✓ Payment proof uploaded</p>
+                      <p className="text-[10px] sm:text-xs text-green-600 mt-1">✓ Bukti pembayaran telah diupload</p>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-gray-200">
                   <Link
                     to={`/orders/${order.id}/confirmation`}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition text-sm"
+                    className="px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition text-xs sm:text-sm text-center"
                   >
-                    View Details
+                    Lihat Detail
                   </Link>
                   
                   {order.status === 'completed' && (
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-sm"
+                      className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-xs sm:text-sm"
                     >
-                      Reorder
+                      Pesan Lagi
                     </button>
                   )}
 
                   {order.status === 'payment_rejected' && (
                     <Link
                       to="/products"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-sm"
+                      className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-xs sm:text-sm text-center"
                     >
-                      Shop Again
+                      Belanja Lagi
                     </Link>
                   )}
                 </div>
