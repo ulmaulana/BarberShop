@@ -10,6 +10,8 @@ import { ServicesListPage } from './pages/services/ServicesListPage'
 import { BookingPage } from './pages/booking/BookingPage'
 import { MyAppointmentsPage } from './pages/appointments/MyAppointmentsPage'
 import { NewAppointmentPage } from './pages/appointments/NewAppointmentPage'
+import { AppointmentDetailPage } from './pages/appointments/AppointmentDetailPage'
+import { RescheduleAppointmentPage } from './pages/appointments/RescheduleAppointmentPage'
 import { QueuePage } from './pages/queue/QueuePage'
 import { ProductsListPage } from './pages/products/ProductsListPage'
 import { ProductDetailPage } from './pages/products/ProductDetailPage'
@@ -30,11 +32,13 @@ import { AdminLoginPage } from './pages/admin/AdminLoginPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { ProductsListPage as AdminProductsListPage } from './pages/admin/products/ProductsListPage'
 import { ServicesListPage as AdminServicesListPage } from './pages/admin/services/ServicesListPage'
+import { AppointmentsListPage as AdminAppointmentsListPage } from './pages/admin/appointments/AppointmentsListPage'
 import { BarbersListPage as AdminBarbersListPage } from './pages/admin/barbers/BarbersListPage'
 import { UsersListPage as AdminUsersListPage } from './pages/admin/users/UsersListPage'
 import { FinancialDashboardPage } from './pages/admin/financial/FinancialDashboardPage'
 import { ExpensesPage } from './pages/admin/financial/ExpensesPage'
 import { PaymentsListPage } from './pages/admin/payments/PaymentsListPage'
+import { VouchersListPage } from './pages/admin/vouchers/VouchersListPage'
 
 export const appRouter = createBrowserRouter(
   createRoutesFromElements(
@@ -67,6 +71,22 @@ export const appRouter = createBrowserRouter(
           element={
             <ProtectedRoute>
               <NewAppointmentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="appointments/:appointmentId"
+          element={
+            <ProtectedRoute>
+              <AppointmentDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="appointments/:appointmentId/reschedule"
+          element={
+            <ProtectedRoute>
+              <RescheduleAppointmentPage />
             </ProtectedRoute>
           }
         />
@@ -176,11 +196,13 @@ export const appRouter = createBrowserRouter(
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="products" element={<AdminProductsListPage />} />
         <Route path="services" element={<AdminServicesListPage />} />
+        <Route path="appointments" element={<AdminAppointmentsListPage />} />
         <Route path="barbers" element={<AdminBarbersListPage />} />
         <Route path="users" element={<AdminUsersListPage />} />
         <Route path="financial" element={<FinancialDashboardPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="payments" element={<PaymentsListPage />} />
+        <Route path="vouchers" element={<VouchersListPage />} />
         {/* TODO: Add more admin routes (reports, settings, etc) */}
       </Route>
     </>,
