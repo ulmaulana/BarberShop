@@ -8,8 +8,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/adminpanel/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/adminpanel/appointments', label: 'Appointments', icon: '📅' },
   { path: '/adminpanel/products', label: 'Products', icon: '📦' },
   { path: '/adminpanel/services', label: 'Services', icon: '✂️' },
+  { path: '/adminpanel/vouchers', label: 'Vouchers', icon: '🎟️' },
   { path: '/adminpanel/barbers', label: 'Barbers', icon: '💈' },
   { path: '/adminpanel/users', label: 'Users', icon: '👥' },
   { path: '/adminpanel/financial', label: 'Financial', icon: '💰' },
