@@ -118,8 +118,6 @@ export function AdminLoginPage() {
             </p>
             <ul className="text-xs text-red-700 space-y-1 list-disc list-inside">
               <li>Hanya untuk administrator yang terauthorisasi</li>
-              <li><strong>Gunakan browser/incognito terpisah</strong> dari customer login</li>
-              <li>Login bersamaan akan menyebabkan konflik session</li>
               <li>Semua aktivitas login tercatat</li>
             </ul>
           </div>

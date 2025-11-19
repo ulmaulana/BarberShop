@@ -83,17 +83,6 @@ export function LoginPage() {
           </p>
         </div>
 
-        {/* Warning for Admin */}
-        <div className="mb-4 rounded-lg bg-yellow-50 border border-yellow-200 p-3">
-          <p className="text-xs text-yellow-800">
-            <strong>Admin?</strong> Silakan login melalui{' '}
-            <Link to="/adminpanel" className="font-medium underline">
-              Admin Panel
-            </Link>
-            {' '}di browser/tab terpisah untuk menghindari konflik session.
-          </p>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Email"
