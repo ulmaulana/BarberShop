@@ -101,7 +101,6 @@ export function ChatAssistant() {
 
   const quickQuestions = [
     'Layanan apa saja yang tersedia?',
-    'Bagaimana cara booking?',
     'Produk apa yang direkomendasikan?',
     'Jam operasional?'
   ]
