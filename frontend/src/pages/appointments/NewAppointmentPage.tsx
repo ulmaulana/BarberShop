@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
 import { handleError } from '../../utils/error'
-import { getCurrentISOString, addMinutesToDate } from '../../utils/date'
+import { addMinutesToDate } from '../../utils/date'
 import type { Service, Barber } from '../../types'
 
 const servicesService = new FirebaseService('services')

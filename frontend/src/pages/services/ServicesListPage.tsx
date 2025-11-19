@@ -136,9 +136,9 @@ export function ServicesListPage() {
                 >
                   {/* Service Image */}
                   <div className="h-56 bg-slate-100 flex items-center justify-center overflow-hidden relative">
-                    {service.imageUrl ? (
+                    {(service as any).imageUrl ? (
                       <img
-                        src={service.imageUrl}
+                        src={(service as any).imageUrl}
                         alt={service.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                         onError={(e) => {

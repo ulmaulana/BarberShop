@@ -7,7 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
 import { handleError } from '../../utils/error'
-import type { Appointment, Review } from '../../types'
+import type { Appointment } from '../../types'
 
 const appointmentsService = new FirebaseService('appointments')
 const reviewsService = new FirebaseService('reviews')
