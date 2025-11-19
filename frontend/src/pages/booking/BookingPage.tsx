@@ -146,7 +146,7 @@ export function BookingPage() {
     return days
   }
 
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
   if (loading) {
     return (
@@ -162,9 +162,9 @@ export function BookingPage() {
         {/* Header with Progress */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-4xl sm:text-5xl font-light text-slate-900 tracking-tight">Book Appointment</h1>
+            <h1 className="text-4xl sm:text-5xl font-light text-slate-900 tracking-tight">Buat Janji Temu</h1>
             <div className="text-sm text-slate-600">
-              <span className="font-medium">Step {currentStep} of 3</span>
+              <span className="font-medium">Langkah {currentStep} dari 3</span>
             </div>
           </div>
           
@@ -186,17 +186,17 @@ export function BookingPage() {
           {/* Step 1: Select Service */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-light text-slate-900 mb-8">Select Service</h2>
+              <h2 className="text-2xl font-light text-slate-900 mb-8">Pilih Layanan</h2>
               
               {services.length === 0 ? (
                 <div className="text-center py-16">
-                  <h3 className="text-xl font-medium text-slate-900 mb-2">No Services Available</h3>
-                  <p className="text-slate-600 mb-8">There are no services to book at the moment.</p>
+                  <h3 className="text-xl font-medium text-slate-900 mb-2">Tidak Ada Layanan Tersedia</h3>
+                  <p className="text-slate-600 mb-8">Saat ini tidak ada layanan yang dapat dipesan.</p>
                   <button
                     onClick={() => navigate('/services')}
                     className="px-6 py-3 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 font-medium transition-all"
                   >
-                    View Services
+                    Lihat Layanan
                   </button>
                 </div>
               ) : (
@@ -249,12 +249,12 @@ export function BookingPage() {
           {/* Step 2: Select Date & Time */}
           {currentStep === 2 && selectedService && (
             <div>
-              <h2 className="text-2xl font-light text-slate-900 mb-8">Select Date & Time</h2>
+              <h2 className="text-2xl font-light text-slate-900 mb-8">Pilih Tanggal & Waktu</h2>
               
               {/* Selected Service Info */}
               <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-8 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide">Selected Service</p>
+                  <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide">Layanan Dipilih</p>
                   <p className="font-medium text-slate-900">
                     {selectedService.name} ({formatCurrency(selectedService.price)}, {selectedService.durationMinutes} min)
                   </p>
@@ -263,14 +263,14 @@ export function BookingPage() {
                   onClick={() => setCurrentStep(1)}
                   className="text-slate-900 hover:text-slate-700 text-sm font-medium"
                 >
-                  Change
+                  Ubah
                 </button>
               </div>
 
               {/* Calendar */}
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-medium text-slate-900">Choose Date</h3>
+                  <h3 className="font-medium text-slate-900">Pilih Tanggal</h3>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
@@ -280,7 +280,7 @@ export function BookingPage() {
                       }}
                       className="px-4 py-2 text-sm border border-slate-300 rounded-xl hover:bg-white bg-white text-slate-700"
                     >
-                      ← Prev
+                      ← Sebelumnya
                     </button>
                     <span className="font-medium text-slate-900 min-w-[140px] text-center">
                       {monthNames[selectedDate.getMonth()]} {selectedDate.getFullYear()}
@@ -293,7 +293,7 @@ export function BookingPage() {
                       }}
                       className="px-4 py-2 text-sm border border-slate-300 rounded-xl hover:bg-white bg-white text-slate-700"
                     >
-                      Next →
+                      Berikutnya →
                     </button>
                   </div>
                 </div>
@@ -301,7 +301,7 @@ export function BookingPage() {
                 {/* Calendar Grid */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-4">
                   <div className="grid grid-cols-7 gap-2">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
                       <div key={day} className="text-center text-xs font-medium text-slate-500 py-2 uppercase tracking-wide">
                         {day}
                       </div>
@@ -342,13 +342,13 @@ export function BookingPage() {
               {/* Time Slots */}
               <div>
                 <h3 className="font-medium text-slate-900 mb-6">
-                  Available Time Slots for {selectedDate.toLocaleDateString()}
+                  Waktu Tersedia untuk {selectedDate.toLocaleDateString('id-ID')}
                 </h3>
 
                 <div className="space-y-6">
                   {/* Morning */}
                   <div>
-                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Morning</h4>
+                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Pagi</h4>
                     <div className="flex flex-wrap gap-2">
                       {timeSlots.morning.map((time) => (
                         <button
@@ -368,7 +368,7 @@ export function BookingPage() {
 
                   {/* Afternoon */}
                   <div>
-                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Afternoon</h4>
+                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Siang</h4>
                     <div className="flex flex-wrap gap-2">
                       {timeSlots.afternoon.map((time) => (
                         <button
@@ -388,7 +388,7 @@ export function BookingPage() {
 
                   {/* Evening */}
                   <div>
-                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Evening</h4>
+                    <h4 className="text-xs font-medium text-slate-500 mb-3 uppercase tracking-wide">Sore</h4>
                     <div className="flex flex-wrap gap-2">
                       {timeSlots.evening.map((time) => (
                         <button
@@ -419,32 +419,32 @@ export function BookingPage() {
           {/* Step 3: Confirm & Notes */}
           {currentStep === 3 && selectedService && (
             <div>
-              <h2 className="text-2xl font-light text-slate-900 mb-8">Confirm & Add Notes</h2>
+              <h2 className="text-2xl font-light text-slate-900 mb-8">Konfirmasi & Tambah Catatan</h2>
               
               {/* Booking Summary */}
               <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-8">
-                <h3 className="font-medium text-slate-900 mb-6">Booking Summary</h3>
+                <h3 className="font-medium text-slate-900 mb-6">Ringkasan Pemesanan</h3>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Service</span>
+                    <span className="text-slate-600">Layanan</span>
                     <span className="font-medium text-slate-900">{selectedService.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Date</span>
-                    <span className="font-medium text-slate-900">{selectedDate.toLocaleDateString()}</span>
+                    <span className="text-slate-600">Tanggal</span>
+                    <span className="font-medium text-slate-900">{selectedDate.toLocaleDateString('id-ID')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Time</span>
+                    <span className="text-slate-600">Waktu</span>
                     <span className="font-medium text-slate-900">{selectedTime}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Duration</span>
-                    <span className="font-medium text-slate-900">{selectedService.durationMinutes} minutes</span>
+                    <span className="text-slate-600">Durasi</span>
+                    <span className="font-medium text-slate-900">{selectedService.durationMinutes} menit</span>
                   </div>
                   <hr className="border-slate-200" />
                   <div className="flex justify-between text-lg">
-                    <span className="font-medium text-slate-900">Price</span>
+                    <span className="font-medium text-slate-900">Harga</span>
                     <span className="font-light text-slate-900">{formatCurrency(selectedService.price)}</span>
                   </div>
                 </div>
@@ -453,7 +453,7 @@ export function BookingPage() {
               {/* Special Notes */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-3">
-                  Special Notes (Optional)
+                  Catatan Khusus (Opsional)
                 </label>
                 <textarea
                   value={notes}
@@ -477,7 +477,7 @@ export function BookingPage() {
                   : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
               }`}
             >
-              ← Back
+              ← Kembali
             </button>
 
             <button
@@ -486,11 +486,11 @@ export function BookingPage() {
               className="px-8 py-3 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 font-medium transition-all disabled:opacity-50"
             >
               {submitting ? (
-                'Submitting...'
+                'Memproses...'
               ) : currentStep === 3 ? (
-                'Confirm Booking →'
+                'Konfirmasi Pemesanan →'
               ) : (
-                'Continue →'
+                'Lanjutkan →'
               )}
             </button>
           </div>

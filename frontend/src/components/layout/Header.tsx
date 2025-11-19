@@ -97,7 +97,7 @@ export function Header() {
                 : 'text-gray-600 hover:text-gray-900 hover:bg-white'
             }`}
           >
-            Services
+            Potong Rambut
           </Link>
           <Link 
             to="/products" 
@@ -107,7 +107,7 @@ export function Header() {
                 : 'text-gray-600 hover:text-gray-900 hover:bg-white'
             }`}
           >
-            Products
+            Produk
           </Link>
           <Link 
             to="/booking" 
@@ -245,7 +245,7 @@ export function Header() {
                   : 'border-transparent text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Services
+              Potong Rambut
             </Link>
             <Link 
               to="/products" 
@@ -256,7 +256,7 @@ export function Header() {
                   : 'border-transparent text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Products
+              Produk
             </Link>
             <Link 
               to="/booking" 

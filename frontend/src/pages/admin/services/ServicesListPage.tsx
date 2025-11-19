@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore'
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { ServiceFormModal } from './ServiceFormModal'
@@ -36,13 +36,19 @@ export function ServicesListPage() {
     try {
       setLoading(true)
       const servicesRef = collection(firestore, 'services')
-      const q = query(servicesRef, orderBy('createdAt', 'desc'))
-      const snapshot = await getDocs(q)
+      const snapshot = await getDocs(servicesRef)
       
       const servicesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Service[]
+      
+      // Sort by createdAt on client side
+      servicesData.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA
+      })
       
       setServices(servicesData)
     } catch (error) {

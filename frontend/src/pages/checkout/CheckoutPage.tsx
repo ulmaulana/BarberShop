@@ -284,8 +284,11 @@ export function CheckoutPage() {
         voucherCode: appliedVoucher?.code || null,
         voucherId: appliedVoucher?.id || null,
         tax: calculateTax(calculateSubtotal() - calculateDiscount()),
-        total: calculateTotal(),
-        status: paymentMethod === 'transfer' ? 'pending_payment' : 'confirmed',
+        totalAmount: calculateTotal(),
+        // Semua order status pending_payment, admin konfirmasi setelah:
+        // - Transfer: verifikasi bukti transfer
+        // - Cash: customer datang dan bayar tunai
+        status: 'pending_payment',
         createdAt: new Date().toISOString(),
       }
 

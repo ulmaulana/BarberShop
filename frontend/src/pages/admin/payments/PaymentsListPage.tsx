@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
-import { firestore } from '../../../config/firebase'
+import { collection, getDocs } from 'firebase/firestore'
+import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { PaymentVerificationModal } from './PaymentVerificationModal'
 
 interface Order {
@@ -10,8 +11,10 @@ interface Order {
   customerId: string
   customerName: string
   customerEmail: string
+  customerPhone?: string
   items: any[]
-  total: number
+  totalAmount: number
+  paymentMethod: 'transfer' | 'cash'
   paymentProofUrl?: string
   paymentProofUploadedAt?: any
   status: string
@@ -19,40 +22,49 @@ interface Order {
   updatedAt: any
 }
 
+type StatusFilter = 'all' | 'pending' | 'paid' | 'cancelled'
+type PaymentMethodFilter = 'all' | 'transfer' | 'cash'
+
 export function PaymentsListPage() {
-  const [pendingPayments, setPendingPayments] = useState<Order[]>([])
+  const { user, loading: authLoading } = useAdminAuth()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethodFilter>('all')
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const { showToast } = useToast()
   
   useEffect(() => {
-    loadPendingPayments()
-  }, [])
+    if (!authLoading && user) {
+      loadOrders()
+    }
+  }, [authLoading, user])
   
-  const loadPendingPayments = async () => {
+  const loadOrders = async () => {
     try {
       setLoading(true)
-      const ordersRef = collection(firestore, 'orders')
+      const ordersRef = collection(adminFirestore, 'orders')
       
-      // Get orders with pending payment status
-      const q = query(
-        ordersRef,
-        where('status', '==', 'pending_payment'),
-        orderBy('paymentProofUploadedAt', 'desc')
-      )
+      // Get semua orders (pending, paid, cancelled, rejected)
+      const snapshot = await getDocs(ordersRef)
       
-      const snapshot = await getDocs(q)
-      
-      const ordersData = snapshot.docs.map(doc => ({
+      let ordersData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Order[]
       
-      setPendingPayments(ordersData)
+      // Sort by createdAt descending (terbaru dulu)
+      ordersData.sort((a, b) => {
+        const timeA = a.paymentProofUploadedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0
+        const timeB = b.paymentProofUploadedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0
+        return timeB - timeA
+      })
+      
+      setOrders(ordersData)
     } catch (error) {
-      console.error('Failed to load pending payments:', error)
-      showToast('Failed to load pending payments', 'error')
+      console.error('Failed to load orders:', error)
+      showToast('Gagal memuat orders', 'error')
     } finally {
       setLoading(false)
     }
@@ -66,7 +78,7 @@ export function PaymentsListPage() {
   const handleCloseModal = () => {
     setShowVerificationModal(false)
     setSelectedOrder(null)
-    loadPendingPayments() // Reload after verification
+    loadOrders() // Reload after verification
   }
   
   const getTimeSinceUpload = (uploadedAt: any) => {
@@ -84,130 +96,310 @@ export function PaymentsListPage() {
     return `${diffDays}d ago`
   }
   
-  if (loading) {
+  // Filter by status
+  const getFilteredByStatus = () => {
+    switch (statusFilter) {
+      case 'pending':
+        return orders.filter(o => o.status === 'pending_payment')
+      case 'paid':
+        return orders.filter(o => o.status === 'paid' || o.status === 'completed')
+      case 'cancelled':
+        return orders.filter(o => o.status === 'payment_rejected' || o.status === 'cancelled')
+      default:
+        return orders
+    }
+  }
+  
+  // Filter by payment method
+  const filteredPayments = paymentMethodFilter === 'all'
+    ? getFilteredByStatus()
+    : getFilteredByStatus().filter(o => o.paymentMethod === paymentMethodFilter)
+  
+  // Counts for tabs
+  const pendingCount = orders.filter(o => o.status === 'pending_payment').length
+  const paidCount = orders.filter(o => o.status === 'paid' || o.status === 'completed').length
+  const cancelledCount = orders.filter(o => o.status === 'payment_rejected' || o.status === 'cancelled').length
+  
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading pending payments...</div>
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-spin">⏳</div>
+          <p className="text-gray-600">Memuat data pembayaran...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <p className="text-gray-600">Unauthorized - Admin login required</p>
+        </div>
       </div>
     )
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Payment Verification</h1>
-          <p className="text-gray-500 mt-1">
-            {pendingPayments.length} payments awaiting verification
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Payment Management</p>
+          <h1 className="text-4xl font-light text-gray-900">Pembayaran</h1>
+          <p className="text-sm text-gray-500 mt-2">
+            {filteredPayments.length} transaksi ditampilkan
           </p>
         </div>
         
         <button
-          onClick={loadPendingPayments}
-          className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          onClick={loadOrders}
+          className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
         >
-          🔄 Refresh
+          Refresh
         </button>
       </div>
       
-      {/* Info Banner */}
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <div className="flex items-start">
-          <span className="text-2xl mr-3">ℹ️</span>
-          <div>
-            <p className="text-sm text-blue-800 font-medium">Manual Payment Verification</p>
-            <p className="text-sm text-blue-700 mt-1">
-              Review each payment proof carefully before approving. Rejected payments will require customer to re-upload.
-            </p>
-          </div>
+      {/* Filters */}
+      <div className="flex items-center gap-4 pb-6 border-b border-gray-200">
+        {/* Status Filter */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+              statusFilter === 'all' 
+                ? 'bg-gray-900 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Semua
+            <span className="ml-2 text-xs opacity-75">({orders.length})</span>
+          </button>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+              statusFilter === 'pending' 
+                ? 'bg-amber-500 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Pending
+            <span className="ml-2 text-xs opacity-75">({pendingCount})</span>
+          </button>
+          <button
+            onClick={() => setStatusFilter('paid')}
+            className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+              statusFilter === 'paid' 
+                ? 'bg-emerald-500 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Verified
+            <span className="ml-2 text-xs opacity-75">({paidCount})</span>
+          </button>
+          <button
+            onClick={() => setStatusFilter('cancelled')}
+            className={`px-4 py-2 text-sm font-medium rounded transition-all ${
+              statusFilter === 'cancelled' 
+                ? 'bg-red-500 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Cancelled
+            <span className="ml-2 text-xs opacity-75">({cancelledCount})</span>
+          </button>
+        </div>
+        
+        <div className="h-8 w-px bg-gray-300"></div>
+      
+        {/* Payment Method Filter */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPaymentMethodFilter('all')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-all ${
+              paymentMethodFilter === 'all' 
+                ? 'bg-gray-900 text-white' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            All Methods
+          </button>
+          <button
+            onClick={() => setPaymentMethodFilter('transfer')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-all ${
+              paymentMethodFilter === 'transfer' 
+                ? 'bg-gray-900 text-white' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Transfer
+          </button>
+          <button
+            onClick={() => setPaymentMethodFilter('cash')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-all ${
+              paymentMethodFilter === 'cash' 
+                ? 'bg-gray-900 text-white' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Cash
+          </button>
         </div>
       </div>
       
-      {/* Payments Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {pendingPayments.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
-          >
-            {/* Payment Proof Thumbnail */}
-            <div className="relative h-48 bg-gray-200">
-              {order.paymentProofUrl ? (
-                <img
-                  src={order.paymentProofUrl}
-                  alt="Payment proof"
-                  className="w-full h-full object-cover cursor-pointer"
-                  onClick={() => handleVerify(order)}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <span className="text-4xl">📷</span>
-                </div>
-              )}
-              
-              {/* Upload Time Badge */}
-              {order.paymentProofUploadedAt && (
-                <div className="absolute top-3 right-3 bg-yellow-400 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">
-                  ⏱️ {getTimeSinceUpload(order.paymentProofUploadedAt)}
-                </div>
-              )}
-              
-              {/* Click to view overlay */}
-              <div
-                className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-30 transition flex items-center justify-center cursor-pointer"
-                onClick={() => handleVerify(order)}
-              >
-                <span className="text-white text-sm font-medium opacity-0 hover:opacity-100 transition">
-                  Click to Verify
-                </span>
-              </div>
-            </div>
-            
-            {/* Order Info */}
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-500">Order</span>
-                <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-                  {order.orderNumber}
-                </span>
-              </div>
-              
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                {order.customerName || order.customerEmail}
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-3">
-                {order.items?.length || 0} items
-              </p>
-              
-              <div className="flex items-center justify-between mb-4 pb-4 border-b">
-                <span className="text-sm text-gray-500">Total</span>
-                <span className="text-lg font-bold text-blue-600">
-                  Rp {order.total.toLocaleString('id-ID')}
-                </span>
-              </div>
-              
-              {/* Actions */}
-              <button
-                onClick={() => handleVerify(order)}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-              >
-                🔍 View & Verify Payment
-              </button>
-            </div>
-          </div>
-        ))}
+      
+      {/* Payments Table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Order
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Method
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Time
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredPayments.map((order) => (
+                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                  {/* Order Number */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      {/* Thumbnail */}
+                      <div className="w-12 h-12 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        {order.paymentMethod === 'transfer' && order.paymentProofUrl ? (
+                          <img
+                            src={order.paymentProofUrl}
+                            alt="Proof"
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-75 transition"
+                            onClick={() => handleVerify(order)}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-mono text-gray-900">{order.orderNumber}</p>
+                        <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Customer */}
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">
+                      {order.customerName || 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {order.customerEmail}
+                    </div>
+                  </td>
+
+                  {/* Payment Method */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm text-gray-900">
+                      {order.paymentMethod === 'transfer' ? 'Transfer' : 'Cash'}
+                    </span>
+                  </td>
+
+                  {/* Amount */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-semibold text-gray-900">
+                      Rp {(order.totalAmount || 0).toLocaleString('id-ID')}
+                    </div>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {order.status === 'pending_payment' && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700">
+                        Pending
+                      </span>
+                    )}
+                    {(order.status === 'paid' || order.status === 'completed') && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700">
+                        Verified
+                      </span>
+                    )}
+                    {(order.status === 'payment_rejected' || order.status === 'cancelled') && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">
+                        Cancelled
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Time */}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.paymentProofUploadedAt 
+                      ? getTimeSinceUpload(order.paymentProofUploadedAt)
+                      : '-'
+                    }
+                  </td>
+
+                  {/* Action */}
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    {order.status === 'pending_payment' ? (
+                      <button
+                        onClick={() => handleVerify(order)}
+                        className="inline-flex items-center px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded hover:bg-gray-800 transition-colors"
+                      >
+                        Verify
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleVerify(order)}
+                        className="inline-flex items-center px-3 py-1.5 text-gray-700 text-xs font-medium hover:text-gray-900 transition-colors"
+                      >
+                        View
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       
-      {pendingPayments.length === 0 && (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            All Caught Up!
+      {filteredPayments.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-16 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">
+            No payments found
           </h3>
-          <p className="text-gray-600">
-            No pending payments to verify at the moment.
+          <p className="text-sm text-gray-500">
+            {statusFilter === 'pending' && 'No pending payments at the moment.'}
+            {statusFilter === 'paid' && 'No verified payments yet.'}
+            {statusFilter === 'cancelled' && 'No cancelled payments.'}
+            {statusFilter === 'all' && 'No payments available.'}
           </p>
         </div>
       )}

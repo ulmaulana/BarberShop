@@ -1,6 +1,6 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore, initializeFirestore, CACHE_SIZE_UNLIMITED, type Firestore } from 'firebase/firestore'
 import { getFunctions } from 'firebase/functions'
 import { getStorage } from 'firebase/storage'
 
@@ -23,6 +23,20 @@ function createFirebaseApp(): FirebaseApp {
 
 export const firebaseApp = createFirebaseApp()
 export const firebaseAuth = getAuth(firebaseApp)
-export const firestore = getFirestore(firebaseApp)
+
+// Initialize Firestore with memory-only cache to avoid persistence issues
+let firestore: Firestore
+try {
+  firestore = initializeFirestore(firebaseApp, {
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+    // Disable local persistence to prevent state conflicts
+    localCache: undefined
+  })
+} catch (error) {
+  // Already initialized, use existing instance
+  firestore = getFirestore(firebaseApp)
+}
+
+export { firestore }
 export const firebaseFunctions = getFunctions(firebaseApp, 'asia-southeast2')
 export const firebaseStorage = getStorage(firebaseApp)

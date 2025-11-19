@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore'
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { BarberFormModal } from './BarberFormModal'
@@ -39,13 +39,19 @@ export function BarbersListPage() {
     try {
       setLoading(true)
       const barbersRef = collection(firestore, 'barbers')
-      const q = query(barbersRef, orderBy('createdAt', 'desc'))
-      const snapshot = await getDocs(q)
+      const snapshot = await getDocs(barbersRef)
       
       const barbersData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Barber[]
+      
+      // Sort by createdAt on client side
+      barbersData.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA
+      })
       
       setBarbers(barbersData)
     } catch (error) {

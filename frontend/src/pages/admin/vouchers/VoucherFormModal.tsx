@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore'
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
+import { formatRupiah, parseRupiah } from '../../../utils/rupiahFormat'
 
 interface Voucher {
   id: string
@@ -125,7 +126,7 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">
-              {voucher ? 'Edit Voucher' : 'Add New Voucher'}
+              {voucher ? 'Edit Voucher' : 'Tambah Voucher Baru'}
             </h2>
             <button
               onClick={onClose}
@@ -140,25 +141,25 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
           {/* Voucher Code */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Voucher Code *
+              Kode Voucher *
             </label>
             <input
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               required
-              placeholder="e.g., WELCOME10"
+              placeholder="cth: WELCOME10"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Use uppercase letters and numbers only
+              Gunakan huruf besar dan angka saja
             </p>
           </div>
 
           {/* Discount Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Discount Type *
+              Tipe Diskon *
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition ${
@@ -174,7 +175,7 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
                   onChange={(e) => setDiscountType(e.target.value as 'percentage')}
                   className="mr-2"
                 />
-                <span className="font-medium">Percentage (%)</span>
+                <span className="font-medium">Persentase (%)</span>
               </label>
               <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition ${
                 discountType === 'fixed' 
@@ -189,7 +190,7 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
                   onChange={(e) => setDiscountType(e.target.value as 'fixed')}
                   className="mr-2"
                 />
-                <span className="font-medium">Fixed Amount (Rp)</span>
+                <span className="font-medium">Nominal Tetap (Rp)</span>
               </label>
             </div>
           </div>
@@ -197,27 +198,35 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
           {/* Discount Value */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Discount Value *
+              Nilai Diskon *
             </label>
-            <div className="relative">
+            {discountType === 'percentage' ? (
+              <div className="relative">
+                <input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  required
+                  min="0"
+                  max={100}
+                  step={1}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="cth: 10"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                <p className="text-xs text-gray-500 mt-1">
+                  Masukkan nilai antara 1-100
+                </p>
+              </div>
+            ) : (
               <input
-                type="number"
-                value={discountValue}
-                onChange={(e) => setDiscountValue(Number(e.target.value))}
+                type="text"
+                value={formatRupiah(discountValue)}
+                onChange={(e) => setDiscountValue(parseRupiah(e.target.value))}
                 required
-                min="0"
-                max={discountType === 'percentage' ? 100 : undefined}
-                step={discountType === 'percentage' ? 1 : 1000}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="cth: 20.000"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                {discountType === 'percentage' ? '%' : 'Rp'}
-              </span>
-            </div>
-            {discountType === 'percentage' && (
-              <p className="text-xs text-gray-500 mt-1">
-                Enter value between 1-100
-              </p>
             )}
           </div>
 
@@ -225,19 +234,17 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
           {discountType === 'percentage' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Maximum Discount (Optional)
+                Maksimal Diskon (Opsional)
               </label>
               <input
-                type="number"
-                value={maxDiscount}
-                onChange={(e) => setMaxDiscount(e.target.value ? Number(e.target.value) : '')}
-                min="0"
-                step="1000"
-                placeholder="e.g., 50000"
+                type="text"
+                value={maxDiscount ? formatRupiah(maxDiscount) : ''}
+                onChange={(e) => setMaxDiscount(e.target.value ? parseRupiah(e.target.value) : '')}
+                placeholder="cth: 50.000"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Cap the maximum discount amount in Rupiah
+                Batasi jumlah diskon maksimal dalam Rupiah
               </p>
             </div>
           )}
@@ -245,27 +252,25 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
           {/* Min Purchase */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Minimum Purchase *
+              Minimal Pembelian *
             </label>
             <input
-              type="number"
-              value={minPurchase}
-              onChange={(e) => setMinPurchase(Number(e.target.value))}
+              type="text"
+              value={formatRupiah(minPurchase)}
+              onChange={(e) => setMinPurchase(parseRupiah(e.target.value))}
               required
-              min="0"
-              step="1000"
-              placeholder="e.g., 100000"
+              placeholder="cth: 100.000"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Minimum order amount to use this voucher
+              Jumlah minimal pesanan untuk menggunakan voucher ini
             </p>
           </div>
 
           {/* Expiry Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Expiry Date *
+              Tanggal Kadaluarsa *
             </label>
             <input
               type="date"
@@ -280,18 +285,18 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
           {/* Usage Limit */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Usage Limit (Optional)
+              Batas Penggunaan (Opsional)
             </label>
             <input
               type="number"
               value={usageLimit}
               onChange={(e) => setUsageLimit(e.target.value ? Number(e.target.value) : '')}
               min="1"
-              placeholder="e.g., 100"
+              placeholder="cth: 100"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Maximum number of times this voucher can be used (leave empty for unlimited)
+              Jumlah maksimal voucher dapat digunakan (kosongkan untuk unlimited)
             </p>
           </div>
 
@@ -305,7 +310,7 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
               className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-              Active (voucher can be used immediately)
+              Aktif (voucher dapat digunakan segera)
             </label>
           </div>
 
@@ -317,14 +322,14 @@ export function VoucherFormModal({ voucher, onClose }: VoucherFormModalProps) {
               disabled={submitting}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition disabled:opacity-50"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : voucher ? 'Update Voucher' : 'Create Voucher'}
+              {submitting ? 'Menyimpan...' : voucher ? 'Update Voucher' : 'Buat Voucher'}
             </button>
           </div>
         </form>

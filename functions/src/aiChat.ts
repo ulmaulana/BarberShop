@@ -110,30 +110,24 @@ async function getProducts(category?: string) {
 async function checkOperatingHours() {
   const now = new Date()
   const currentHour = now.getHours()
-  const currentDay = now.getDay() // 0 = Sunday, 6 = Saturday
   
-  let isOpen = false
-  let todaySchedule = ''
-  
-  if (currentDay === 0) {
-    // Sunday: 10:00 - 18:00
-    isOpen = currentHour >= 10 && currentHour < 18
-    todaySchedule = 'Minggu: 10:00 - 18:00'
-  } else {
-    // Monday-Saturday: 9:00 - 20:00
-    isOpen = currentHour >= 9 && currentHour < 20
-    todaySchedule = 'Senin-Sabtu: 9:00 - 20:00'
-  }
+  // Pangkas Sahala Sariwangi: Setiap Hari 08:00 - 20:00
+  const isOpen = currentHour >= 8 && currentHour < 20
   
   return {
-    current_time: now.toLocaleString('id-ID'),
+    current_time: now.toLocaleString('id-ID', { 
+      timeZone: 'Asia/Jakarta',
+      dateStyle: 'full',
+      timeStyle: 'short'
+    }),
     is_open: isOpen,
     status: isOpen ? 'BUKA' : 'TUTUP',
-    schedule: {
-      weekday: 'Senin-Sabtu: 9:00 - 20:00',
-      sunday: 'Minggu: 10:00 - 18:00'
-    },
-    today_schedule: todaySchedule
+    schedule: 'Setiap Hari: 08:00 - 20:00 WIB',
+    note: 'Libur tidak menentu, disesuaikan dengan kondisi. Hubungi 081312772527 untuk konfirmasi.',
+    contact: {
+      name: 'Akmal',
+      phone: '081312772527'
+    }
   }
 }
 
@@ -174,47 +168,53 @@ async function executeFunction(functionName: string, args: any): Promise<any> {
   }
 }
 
-// System prompt
-const SYSTEM_PROMPT = `You are a helpful AI assistant for Sahala Barber, a barbershop and grooming products store.
+// System prompt - OPTIMIZED for fast response
+const SYSTEM_PROMPT = `Kamu asisten AI untuk Pangkas Sahala Sariwangi, barbershop profesional di Tasikmalaya.
 
-Your role:
-- Help customers with REAL-TIME information about barbershop services, products, and availability
-- Provide accurate product recommendations based on current stock and prices
-- Answer questions about appointments, booking, and store policies
-- Be friendly, professional, and concise in Indonesian language
+📍 INFO BARBERSHOP:
+Nama: Pangkas Sahala Sariwangi
+Alamat: Sariwangi, Kec. Sariwangi, Kab. Tasikmalaya, Jawa Barat 46465
+Kontak: Akmal - 081312772527 (WA/Telp)
+Jam: Setiap Hari 08.00-20.00 WIB (Libur tidak menentu)
 
-IMPORTANT - You have access to these real-time functions:
-- get_services: Get current services list with actual prices
-- get_products: Get current products with stock and prices
-- check_operating_hours: Check if store is open NOW
-- get_available_barbers: Get list of active barbers
+💇 TREATMENT:
+1. Pangkas Rambut
+2. Cat Rambut
+3. Bleaching Rambut
+4. Perming Rambut
+5. Smoothing Rambut
+6. Hair Wash
+7. Hair Styling
+8. Shaving/Beard Trim
+9. Hair Tonic/Serum
+10. Massage
+11. Kids Haircut
 
-USE THESE FUNCTIONS when customers ask about:
-- "Layanan apa saja?" → Call get_services
-- "Produk apa yang tersedia?" → Call get_products
-- "Apakah buka sekarang?" → Call check_operating_hours
-- "Siapa barbernya?" → Call get_available_barbers
+🛍️ PRODUK:
+1. Hair Powder
+2. Hair Pomade
+3. Hair Tonic
+4. Hair Color
+5. Hair Spray
+6. Serum Rambut
+7. Maker
 
-Guidelines:
-- Always respond in Indonesian (Bahasa Indonesia)
-- Be casual but professional
-- Keep responses concise (2-3 paragraphs max)
-- USE FUNCTIONS to get real data instead of making assumptions
-- Encourage booking appointments through the website
-- When showing prices, use format: Rp XXX.XXX
+RULES:
+- Jawab dalam Bahasa Indonesia, friendly tapi profesional
+- Concise (2-3 paragraf max)
+- Untuk harga/stok: arahkan hubungi Akmal (081312772527)
+- Gunakan **bold** untuk highlight penting
+- Gunakan line break untuk readability
+- Selalu mention kontak Akmal
+- Encourage booking online
 
-FORMATTING RULES (IMPORTANT):
-- Use **bold** for important points, service names, or product names
-- Use *italic* for emphasis or tips
-- Use bullet points (- or *) for lists
-- Use double line breaks for new paragraphs
-- Structure your response clearly with proper spacing
-- Example format:
-  **Layanan Kami:**
-  - **Haircut** - Rp 50.000
-  - **Beard Trim** - Rp 30.000
-  
-  *Tip: Booking online lebih cepat!*`
+CONTOH FORMAT JAWABAN:
+
+"Hai! Treatment kami lengkap kok! 💇‍♂️
+
+Ada **Pangkas Rambut, Cat/Bleaching, Smoothing, Perming, Shaving, Massage** dan lainnya.
+
+*Untuk harga detail, hubungi **Akmal di 081312772527** ya!*"`
 
 // Streaming HTTPS Function for real-time responses
 export const streamChatWithAI = functions.https.onRequest(async (req, res) => {
@@ -251,76 +251,10 @@ export const streamChatWithAI = functions.https.onRequest(async (req, res) => {
       ...messages.filter((m: any) => m.role !== 'system')
     ]
     
-    // First API call with tools to check for function calls
-    const checkPayload = {
-      model: 'glm-4.6',
-      messages: messagesWithSystem,
-      temperature: 0.7,
-      top_p: 0.9,
-      tools: TOOLS_DEFINITION
-    }
-    
-    const checkResponse = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${BIGMODEL_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(checkPayload)
-    })
-    
-    if (!checkResponse.ok) {
-      res.write(`data: ${JSON.stringify({ error: `API error: ${checkResponse.status}` })}\n\n`)
-      res.end()
-      return
-    }
-    
-    const checkResult = await checkResponse.json()
-    const firstMessage = checkResult.choices[0].message
-    
-    // Check if AI wants to call tools
-    let finalMessages = messagesWithSystem
-    
-    if (firstMessage.tool_calls && firstMessage.tool_calls.length > 0) {
-      console.log('AI requested tool calls:', firstMessage.tool_calls)
-      
-      // Execute all tool calls
-      const toolResponses = []
-      for (const toolCall of firstMessage.tool_calls) {
-        const functionName = toolCall.function.name
-        const functionArgs = JSON.parse(toolCall.function.arguments || '{}')
-        
-        try {
-          const functionResult = await executeFunction(functionName, functionArgs)
-          
-          toolResponses.push({
-            tool_call_id: toolCall.id,
-            role: 'tool',
-            name: functionName,
-            content: JSON.stringify(functionResult)
-          })
-        } catch (error: any) {
-          toolResponses.push({
-            tool_call_id: toolCall.id,
-            role: 'tool',
-            name: functionName,
-            content: JSON.stringify({ error: error.message })
-          })
-        }
-      }
-      
-      // Update messages with tool results
-      finalMessages = [
-        ...messagesWithSystem,
-        firstMessage,
-        ...toolResponses
-      ]
-    }
-    
-    // Stream final response
+    // DIRECT STREAMING - No function calling for faster response
     const streamPayload = {
       model: 'glm-4.6',
-      messages: finalMessages,
+      messages: messagesWithSystem,
       temperature: 0.7,
       top_p: 0.9,
       stream: true
@@ -385,106 +319,36 @@ export const chatWithAI = functions.https.onCall(async (data, context) => {
       ...messages.filter((m: any) => m.role !== 'system')
     ]
     
-    // First API call with tools
-    const firstPayload = {
+    // DIRECT API CALL - No function calling for faster response
+    const payload = {
       model: 'glm-4.6',
       messages: messagesWithSystem,
       temperature: 0.7,
-      top_p: 0.9,
-      tools: TOOLS_DEFINITION
+      top_p: 0.9
+      // NO TOOLS - untuk response cepat tanpa database call
     }
     
-    const firstResponse = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${BIGMODEL_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(firstPayload)
+      body: JSON.stringify(payload)
     })
     
-    if (!firstResponse.ok) {
+    if (!response.ok) {
       throw new functions.https.HttpsError(
         'internal',
-        `BigModel API error: ${firstResponse.status}`
+        `BigModel API error: ${response.status}`
       )
     }
     
-    const firstResult = await firstResponse.json()
-    const firstMessage = firstResult.choices[0].message
+    const result = await response.json()
+    const message = result.choices[0].message.content
     
-    // Check if AI wants to call tools
-    if (firstMessage.tool_calls && firstMessage.tool_calls.length > 0) {
-      console.log('AI requested tool calls:', firstMessage.tool_calls)
-      
-      // Execute all tool calls
-      const toolResponses = []
-      for (const toolCall of firstMessage.tool_calls) {
-        const functionName = toolCall.function.name
-        const functionArgs = JSON.parse(toolCall.function.arguments || '{}')
-        
-        console.log(`Executing function: ${functionName}`, functionArgs)
-        
-        try {
-          const functionResult = await executeFunction(functionName, functionArgs)
-          
-          toolResponses.push({
-            tool_call_id: toolCall.id,
-            role: 'tool',
-            name: functionName,
-            content: JSON.stringify(functionResult)
-          })
-        } catch (error: any) {
-          console.error(`Error executing function ${functionName}:`, error)
-          toolResponses.push({
-            tool_call_id: toolCall.id,
-            role: 'tool',
-            name: functionName,
-            content: JSON.stringify({ error: error.message })
-          })
-        }
-      }
-      
-      // Second API call with tool results
-      const secondPayload = {
-        model: 'glm-4.6',
-        messages: [
-          ...messagesWithSystem,
-          firstMessage,
-          ...toolResponses
-        ],
-        temperature: 0.7,
-        top_p: 0.9
-      }
-      
-      const secondResponse = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${BIGMODEL_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(secondPayload)
-      })
-      
-      if (!secondResponse.ok) {
-        throw new functions.https.HttpsError(
-          'internal',
-          `BigModel API error on second call: ${secondResponse.status}`
-        )
-      }
-      
-      const secondResult = await secondResponse.json()
-      const finalMessage = secondResult.choices[0].message.content
-      
-      return {
-        message: finalMessage,
-        toolCalls: firstMessage.tool_calls.map((tc: any) => tc.function.name)
-      }
-    } else {
-      // No tool calls, return direct response
-      return {
-        message: firstMessage.content
-      }
+    return {
+      message
     }
     
   } catch (error: any) {

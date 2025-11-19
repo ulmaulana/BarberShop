@@ -3,6 +3,7 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/fi
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { CloudinaryImageUpload } from '../../../components/common/CloudinaryImageUpload'
+import { formatRupiah, parseRupiah } from '../../../utils/rupiahFormat'
 
 interface Service {
   id: string
@@ -112,7 +113,7 @@ export function ServiceFormModal({ service, onClose }: Props) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-800">
-            {service ? 'Edit Service' : 'Add New Service'}
+            {service ? 'Edit Layanan' : 'Tambah Layanan Baru'}
           </h2>
           <button
             onClick={onClose}
@@ -127,14 +128,14 @@ export function ServiceFormModal({ service, onClose }: Props) {
           {/* Service Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service Name <span className="text-red-500">*</span>
+              Nama Layanan <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. Haircut Premium"
+              placeholder="cth: Potong Rambut Premium"
               maxLength={100}
             />
           </div>
@@ -142,14 +143,14 @@ export function ServiceFormModal({ service, onClose }: Props) {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description <span className="text-red-500">*</span>
+              Deskripsi <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={4}
-              placeholder="Describe the service..."
+              placeholder="Deskripsi layanan..."
               maxLength={500}
             />
           </div>
@@ -157,17 +158,17 @@ export function ServiceFormModal({ service, onClose }: Props) {
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category <span className="text-red-500">*</span>
+              Kategori <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="haircut">Haircut</option>
+              <option value="haircut">Potong Rambut</option>
               <option value="styling">Styling</option>
-              <option value="treatment">Treatment</option>
-              <option value="package">Package</option>
+              <option value="treatment">Perawatan</option>
+              <option value="package">Paket</option>
             </select>
           </div>
           
@@ -175,35 +176,34 @@ export function ServiceFormModal({ service, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (Rp) <span className="text-red-500">*</span>
+                Harga (Rp) <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                type="text"
+                value={formatRupiah(formData.price)}
+                onChange={(e) => setFormData({ ...formData, price: parseRupiah(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                min="10000"
-                step="5000"
+                placeholder="cth: 50.000"
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (minutes) <span className="text-red-500">*</span>
+                Durasi (menit) <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={15}>15 minutes</option>
-                <option value={30}>30 minutes</option>
-                <option value={45}>45 minutes</option>
-                <option value={60}>60 minutes</option>
-                <option value={90}>90 minutes</option>
-                <option value={120}>120 minutes</option>
-                <option value={150}>150 minutes</option>
-                <option value={180}>180 minutes</option>
+                <option value={15}>15 menit</option>
+                <option value={30}>30 menit</option>
+                <option value={45}>45 menit</option>
+                <option value={60}>60 menit</option>
+                <option value={90}>90 menit</option>
+                <option value={120}>120 menit</option>
+                <option value={150}>150 menit</option>
+                <option value={180}>180 menit</option>
               </select>
             </div>
           </div>
@@ -211,7 +211,7 @@ export function ServiceFormModal({ service, onClose }: Props) {
           {/* Service Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service Image <span className="text-gray-400 text-xs">(optional)</span>
+              Gambar Layanan <span className="text-gray-400 text-xs">(opsional)</span>
             </label>
             <CloudinaryImageUpload
               maxFiles={1}
@@ -231,7 +231,7 @@ export function ServiceFormModal({ service, onClose }: Props) {
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-              Active (visible to customers)
+              Aktif (terlihat oleh pelanggan)
             </label>
           </div>
           
@@ -242,14 +242,14 @@ export function ServiceFormModal({ service, onClose }: Props) {
               onClick={onClose}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {loading ? 'Saving...' : service ? 'Update Service' : 'Create Service'}
+              {loading ? 'Menyimpan...' : service ? 'Update Layanan' : 'Buat Layanan'}
             </button>
           </div>
         </form>

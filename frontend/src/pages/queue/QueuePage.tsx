@@ -5,6 +5,8 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { FirebaseService } from '../../services/firebase.service'
+import { NotificationService } from '../../services/notification.service'
+import { useQueueNotification } from '../../hooks/useQueueNotification'
 import { formatTime } from '../../utils/date'
 import { handleError } from '../../utils/error'
 import type { QueueEntry } from '../../types'
@@ -18,10 +20,18 @@ export function QueuePage() {
   const [myQueue, setMyQueue] = useState<QueueEntry | null>(null)
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
+  const [notificationEnabled, setNotificationEnabled] = useState(false)
+  
+  // Hook untuk monitor queue dan kirim notifikasi
+  useQueueNotification({ myQueue, enabled: notificationEnabled })
 
   useEffect(() => {
     loadQueue()
     const interval = setInterval(loadQueue, 10000) // Refresh setiap 10 detik
+    
+    // Check notification permission saat mount
+    setNotificationEnabled(NotificationService.hasPermission())
+    
     return () => clearInterval(interval)
   }, [])
 
@@ -77,6 +87,17 @@ export function QueuePage() {
     }
   }
 
+  const handleEnableNotifications = async () => {
+    const granted = await NotificationService.requestPermission()
+    
+    if (granted) {
+      setNotificationEnabled(true)
+      showToast('Notifikasi diaktifkan! Anda akan menerima notifikasi saat giliran Anda tiba.', 'success')
+    } else {
+      showToast('Notifikasi ditolak. Silakan aktifkan di pengaturan browser.', 'warning')
+    }
+  }
+
   if (loading) {
     return <LoadingSpinner size="lg" className="py-12" />
   }
@@ -87,6 +108,41 @@ export function QueuePage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Antrian Walk-In</h1>
         <p className="mt-2 text-sm sm:text-base text-gray-600">Bergabung dengan antrian untuk layanan tanpa appointment</p>
       </div>
+
+      {/* Notification Banner */}
+      {myQueue && !notificationEnabled && (
+        <Card className="border-2 border-yellow-400 bg-yellow-50">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🔔</span>
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900">Aktifkan Notifikasi</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                    Dapatkan notifikasi browser dan email saat giliran Anda tiba!
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={handleEnableNotifications}
+                className="w-full sm:w-auto text-sm bg-yellow-500 hover:bg-yellow-600"
+              >
+                Aktifkan Notifikasi
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Notification Status - Jika sudah enabled */}
+      {myQueue && notificationEnabled && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 flex items-center gap-2">
+          <span className="text-green-600">✓</span>
+          <p className="text-xs sm:text-sm text-green-800 font-medium">
+            Notifikasi aktif - Anda akan mendapat pemberitahuan saat giliran tiba
+          </p>
+        </div>
+      )}
 
       {myQueue ? (
         <Card className="border-2 border-blue-500">

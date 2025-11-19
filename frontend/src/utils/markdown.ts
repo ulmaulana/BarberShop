@@ -4,6 +4,13 @@ export function parseMarkdown(text: string): string {
 
   let html = text
 
+  // Preserve existing HTML tags (like <a> tags from AI response)
+  const htmlTags: string[] = []
+  html = html.replace(/(<a[^>]*>.*?<\/a>)/g, (match) => {
+    htmlTags.push(match)
+    return `__HTML_TAG_${htmlTags.length - 1}__`
+  })
+
   // Headings: #### text -> h4, ### text -> h3, etc.
   html = html.replace(/^####\s+(.+)$/gm, '<h4 class="text-sm font-semibold mt-2 mb-0.5">$1</h4>')
   html = html.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-semibold mt-2 mb-0.5">$1</h3>')
@@ -29,6 +36,11 @@ export function parseMarkdown(text: string): string {
 
   // Line breaks
   html = html.replace(/\n/g, '<br />')
+
+  // Restore HTML tags
+  htmlTags.forEach((tag, index) => {
+    html = html.replace(`__HTML_TAG_${index}__`, tag)
+  })
 
   return html
 }

@@ -14,7 +14,6 @@ import { AppointmentDetailPage } from './pages/appointments/AppointmentDetailPag
 import { RescheduleAppointmentPage } from './pages/appointments/RescheduleAppointmentPage'
 import { QueuePage } from './pages/queue/QueuePage'
 import { ProductsListPage } from './pages/products/ProductsListPage'
-import { ProductDetailPage } from './pages/products/ProductDetailPage'
 import { ShoppingCartPage } from './pages/cart/ShoppingCartPage'
 import { CheckoutPage } from './pages/checkout/CheckoutPage'
 import { OrdersListPage } from './pages/orders/OrdersListPage'
@@ -34,7 +33,6 @@ import { ProductsListPage as AdminProductsListPage } from './pages/admin/product
 import { ServicesListPage as AdminServicesListPage } from './pages/admin/services/ServicesListPage'
 import { AppointmentsListPage as AdminAppointmentsListPage } from './pages/admin/appointments/AppointmentsListPage'
 import { BarbersListPage as AdminBarbersListPage } from './pages/admin/barbers/BarbersListPage'
-import { UsersListPage as AdminUsersListPage } from './pages/admin/users/UsersListPage'
 import { FinancialDashboardPage } from './pages/admin/financial/FinancialDashboardPage'
 import { ExpensesPage } from './pages/admin/financial/ExpensesPage'
 import { PaymentsListPage } from './pages/admin/payments/PaymentsListPage'
@@ -51,7 +49,6 @@ export const appRouter = createBrowserRouter(
         <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="services" element={<ServicesListPage />} />
         <Route path="products" element={<ProductsListPage />} />
-        <Route path="products/:productId" element={<ProductDetailPage />} />
         <Route path="cart" element={<ShoppingCartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="booking" element={<BookingPage />} />
@@ -103,14 +100,6 @@ export const appRouter = createBrowserRouter(
           element={
             <ProtectedRoute>
               <ProductsListPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="products/:id"
-          element={
-            <ProtectedRoute>
-              <ProductDetailPage />
             </ProtectedRoute>
           }
         />
@@ -198,12 +187,10 @@ export const appRouter = createBrowserRouter(
         <Route path="services" element={<AdminServicesListPage />} />
         <Route path="appointments" element={<AdminAppointmentsListPage />} />
         <Route path="barbers" element={<AdminBarbersListPage />} />
-        <Route path="users" element={<AdminUsersListPage />} />
         <Route path="financial" element={<FinancialDashboardPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="payments" element={<PaymentsListPage />} />
         <Route path="vouchers" element={<VouchersListPage />} />
-        {/* TODO: Add more admin routes (reports, settings, etc) */}
       </Route>
     </>,
   ),

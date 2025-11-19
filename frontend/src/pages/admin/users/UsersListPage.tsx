@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, getDocs, updateDoc, doc, orderBy, where } from 'firebase/firestore'
+import { collection, query, getDocs, updateDoc, doc, where } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { UserDetailModal } from './UserDetailModal'
@@ -38,8 +38,7 @@ export function UsersListPage() {
       // Only get customers (exclude admin)
       const q = query(
         usersRef,
-        where('role', '==', 'customer'),
-        orderBy('createdAt', 'desc')
+        where('role', '==', 'customer')
       )
       const snapshot = await getDocs(q)
       
@@ -47,6 +46,13 @@ export function UsersListPage() {
         id: doc.id,
         ...doc.data()
       })) as User[]
+      
+      // Sort by createdAt on client side
+      usersData.sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime()
+        const dateB = new Date(b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
       
       setUsers(usersData)
     } catch (error) {

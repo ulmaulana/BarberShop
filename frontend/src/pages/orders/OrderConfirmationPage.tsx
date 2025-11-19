@@ -25,7 +25,8 @@ interface Order {
   paymentProof?: string
   subtotal: number
   tax: number
-  total: number
+  totalAmount: number
+  discount?: number
   status: string
   createdAt: string
 }
@@ -47,10 +48,15 @@ export function OrderConfirmationPage() {
     try {
       const orderDoc = await getDoc(doc(firestore, 'orders', orderId))
       if (orderDoc.exists()) {
-        setOrder({
+        const orderData = {
           id: orderDoc.id,
           ...orderDoc.data()
-        } as Order)
+        } as Order
+        
+        console.log('📦 Order loaded:', orderData)
+        console.log('💰 Total Amount:', orderData.totalAmount)
+        
+        setOrder(orderData)
       }
     } catch (error) {
       console.error('Error loading order:', error)
@@ -170,15 +176,21 @@ export function OrderConfirmationPage() {
           <div className="space-y-2 pt-4 border-t border-gray-200">
             <div className="flex justify-between text-gray-700">
               <span>Subtotal:</span>
-              <span className="font-medium">{formatCurrency(order.subtotal)}</span>
+              <span className="font-medium">{formatCurrency(order.subtotal || 0)}</span>
             </div>
+            {order.discount && order.discount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount:</span>
+                <span className="font-medium">-{formatCurrency(order.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-700">
               <span>Tax (PPN 11%):</span>
-              <span className="font-medium">{formatCurrency(order.tax)}</span>
+              <span className="font-medium">{formatCurrency(order.tax || 0)}</span>
             </div>
             <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
               <span>Total:</span>
-              <span className="text-blue-600">{formatCurrency(order.total)}</span>
+              <span className="text-blue-600">{formatCurrency(order.totalAmount || 0)}</span>
             </div>
           </div>
 

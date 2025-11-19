@@ -9,21 +9,39 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/adminpanel/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/adminpanel/appointments', label: 'Appointments', icon: '📅' },
+  { path: '/adminpanel/payments', label: 'Payments', icon: '💳' },
   { path: '/adminpanel/products', label: 'Products', icon: '📦' },
   { path: '/adminpanel/services', label: 'Services', icon: '✂️' },
   { path: '/adminpanel/vouchers', label: 'Vouchers', icon: '🎟️' },
   { path: '/adminpanel/barbers', label: 'Barbers', icon: '💈' },
-  { path: '/adminpanel/users', label: 'Users', icon: '👥' },
   { path: '/adminpanel/financial', label: 'Financial', icon: '💰' },
-  { path: '/adminpanel/reports', label: 'Reports', icon: '📊' },
-  { path: '/adminpanel/settings', label: 'Settings', icon: '⚙️' },
 ]
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const location = useLocation()
   
   return (
-    <aside className="w-64 bg-white shadow-lg">
+    <>
+      {/* Overlay for mobile (dark background) */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 bg-white shadow-lg
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
       {/* Logo */}
       <div className="p-6 border-b">
         <h1 className="text-2xl font-bold text-gray-800">
@@ -41,6 +59,7 @@ export function AdminSidebar() {
             <Link
               key={item.path}
               to={item.path}
+              onClick={onClose}
               className={`
                 flex items-center gap-3 px-4 py-3 rounded-lg
                 transition-colors duration-150
@@ -57,5 +76,6 @@ export function AdminSidebar() {
         })}
       </nav>
     </aside>
+    </>
   )
 }

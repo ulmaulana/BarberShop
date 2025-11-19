@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'
 import { firestore } from '../../config/firebase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -205,9 +205,8 @@ export function ProductsListPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-                <Link
+                <div
                   key={product.id}
-                  to={`/products/${product.id}`}
                   className="group"
                 >
                   <div className="bg-white border border-slate-200 hover:border-slate-300 rounded-3xl transition-all overflow-hidden h-full flex flex-col">
@@ -287,7 +286,7 @@ export function ProductsListPage() {
                       </button>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
           </div>
         )}

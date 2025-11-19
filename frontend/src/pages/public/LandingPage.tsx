@@ -384,11 +384,25 @@ export function LandingPage() {
             </div>
 
             <div>
-              <h3 className="text-white font-medium mb-4">Contact</h3>
-              <ul className="space-y-3 text-slate-500">
-                <li>Jl. Merdeka No. 123</li>
-                <li>+62 812-3456-7890</li>
-                <li>info@sahalabarber.com</li>
+              <h3 className="text-white font-medium mb-4">Kontak & Informasi</h3>
+              <ul className="space-y-3 text-slate-500 text-sm leading-relaxed">
+                <li>
+                  <span className="text-slate-400 font-medium">Kontak No:</span><br />
+                  <a href="https://wa.me/6281312772527" className="text-green-400 hover:text-green-300 transition">
+                    081312772527
+                  </a>
+                </li>
+                <li>
+                  <span className="text-slate-400 font-medium">Alamat:</span><br />
+                  Sariwangi, Kec. Sariwangi,<br />
+                  Kabupaten Tasikmalaya,<br />
+                  Jawa Barat 46465
+                </li>
+                <li>
+                  <span className="text-slate-400 font-medium">Jam Operasional:</span><br />
+                  Setiap Hari 08.00 – 20.00<br />
+                  <span className="text-amber-400 text-xs">Libur Tidak Menentu Disesuaikan</span>
+                </li>
               </ul>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore'
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { ProductFormModal } from './ProductFormModal'
@@ -38,13 +38,19 @@ export function ProductsListPage() {
     try {
       setLoading(true)
       const productsRef = collection(firestore, 'products')
-      const q = query(productsRef, orderBy('createdAt', 'desc'))
-      const snapshot = await getDocs(q)
+      const snapshot = await getDocs(productsRef)
       
       const productsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Product[]
+      
+      // Sort by createdAt on client side
+      productsData.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA
+      })
       
       setProducts(productsData)
     } catch (error) {

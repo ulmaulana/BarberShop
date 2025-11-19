@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../contexts/AdminAuthContext'
 import { useToast } from '../../contexts/ToastContext'
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  onToggleSidebar: () => void
+}
+
+export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   const { user, logout } = useAdminAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()
@@ -30,8 +34,27 @@ export function AdminHeader() {
   const unreadCount = notifications.length
   
   return (
-    <header className="bg-white shadow-sm border-b px-6 py-4">
-      <div className="flex items-center justify-end gap-6">
+    <header className="bg-white shadow-sm border-b px-3 sm:px-6 py-4">
+      <div className="flex items-center justify-between gap-4">
+        {/* Mobile Hamburger + Logo (Visible on Mobile Only) */}
+        <div className="flex items-center gap-3 lg:hidden">
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+            aria-label="Toggle sidebar"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">💈</span>
+            <h1 className="text-lg font-bold text-gray-800">Sahala Barber</h1>
+          </div>
+        </div>
+        
+        {/* Right Side - Notifications & Profile */}
+        <div className="flex items-center gap-3 sm:gap-6">
         {/* Notifications */}
         <div className="relative">
           <button
@@ -89,6 +112,7 @@ export function AdminHeader() {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </header>

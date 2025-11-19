@@ -3,6 +3,7 @@ import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/fi
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { CloudinaryImageUpload } from '../../../components/common/CloudinaryImageUpload'
+import { formatRupiah, parseRupiah } from '../../../utils/rupiahFormat'
 
 interface Product {
   id: string
@@ -127,7 +128,7 @@ export function ProductFormModal({ product, onClose }: Props) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-800">
-            {product ? 'Edit Product' : 'Add New Product'}
+            {product ? 'Edit Produk' : 'Tambah Produk Baru'}
           </h2>
           <button
             onClick={onClose}
@@ -142,14 +143,14 @@ export function ProductFormModal({ product, onClose }: Props) {
           {/* Product Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Name <span className="text-red-500">*</span>
+              Nama Produk <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g. Pomade Strong Hold"
+              placeholder="cth: Pomade Strong Hold"
               maxLength={100}
             />
           </div>
@@ -157,14 +158,14 @@ export function ProductFormModal({ product, onClose }: Props) {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Deskripsi
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={3}
-              placeholder="Product description..."
+              placeholder="Deskripsi produk..."
               maxLength={500}
             />
           </div>
@@ -173,7 +174,7 @@ export function ProductFormModal({ product, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
+                Kategori <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.category}
@@ -183,21 +184,21 @@ export function ProductFormModal({ product, onClose }: Props) {
                 <option value="shampoo">Shampoo</option>
                 <option value="conditioner">Conditioner</option>
                 <option value="styling">Styling</option>
-                <option value="tools">Tools</option>
-                <option value="other">Other</option>
+                <option value="tools">Alat</option>
+                <option value="other">Lainnya</option>
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SKU (optional)
+                SKU (opsional)
               </label>
               <input
                 type="text"
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Auto-generated"
+                placeholder="Otomatis dibuat"
               />
             </div>
           </div>
@@ -206,29 +207,27 @@ export function ProductFormModal({ product, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selling Price (Rp) <span className="text-red-500">*</span>
+                Harga Jual (Rp) <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                type="text"
+                value={formatRupiah(formData.price)}
+                onChange={(e) => setFormData({ ...formData, price: parseRupiah(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                min="1000"
-                step="1000"
+                placeholder="cth: 50.000"
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cost Price (Rp) <span className="text-gray-400 text-xs">optional</span>
+                Harga Modal (Rp) <span className="text-gray-400 text-xs">opsional</span>
               </label>
               <input
-                type="number"
-                value={formData.costPrice}
-                onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
+                type="text"
+                value={formatRupiah(formData.costPrice)}
+                onChange={(e) => setFormData({ ...formData, costPrice: parseRupiah(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                min="0"
-                step="1000"
+                placeholder="cth: 30.000"
               />
             </div>
           </div>
@@ -237,7 +236,7 @@ export function ProductFormModal({ product, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stock Quantity <span className="text-red-500">*</span>
+                Jumlah Stok <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -245,12 +244,13 @@ export function ProductFormModal({ product, onClose }: Props) {
                 onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="0"
+                placeholder="cth: 100"
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Low Stock Alert Threshold
+                Batas Peringatan Stok Rendah
               </label>
               <input
                 type="number"
@@ -258,6 +258,7 @@ export function ProductFormModal({ product, onClose }: Props) {
                 onChange={(e) => setFormData({ ...formData, minStockThreshold: Number(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min="0"
+                placeholder="cth: 10"
               />
             </div>
           </div>
@@ -265,8 +266,8 @@ export function ProductFormModal({ product, onClose }: Props) {
           {/* Images Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Images <span className="text-red-500">*</span>
-              <span className="text-gray-400 text-xs ml-2">(Max 5 images)</span>
+              Gambar Produk <span className="text-red-500">*</span>
+              <span className="text-gray-400 text-xs ml-2">(Maks 5 gambar)</span>
             </label>
             <CloudinaryImageUpload
               maxFiles={5}
@@ -286,7 +287,7 @@ export function ProductFormModal({ product, onClose }: Props) {
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
-              Active (visible to customers)
+              Aktif (terlihat oleh pelanggan)
             </label>
           </div>
           
@@ -297,14 +298,14 @@ export function ProductFormModal({ product, onClose }: Props) {
               onClick={onClose}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
-              {loading ? 'Saving...' : product ? 'Update Product' : 'Create Product'}
+              {loading ? 'Menyimpan...' : product ? 'Update Produk' : 'Buat Produk'}
             </button>
           </div>
         </form>
