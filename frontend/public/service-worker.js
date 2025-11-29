@@ -25,6 +25,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url)
 
+  // Skip non-http(s) requests (chrome-extension://, etc)
+  if (!url.protocol.startsWith('http')) return
+
   // API requests - always network only
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(event.request))
