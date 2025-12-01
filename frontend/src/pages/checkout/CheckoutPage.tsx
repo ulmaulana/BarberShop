@@ -442,17 +442,16 @@ export function CheckoutPage() {
                 {paymentMethod === 'transfer' && (
                   <div className="space-y-4">
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="flex items-center justify-center mb-4">
-                        <div className="w-48 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-6xl mb-2">📱</div>
-                            <p className="text-sm text-gray-600">Kode QR</p>
-                            <p className="text-xs text-gray-500">Scan untuk bayar</p>
-                            <p className="text-lg font-bold text-blue-600 mt-2">
-                              {formatCurrency(calculateTotal())}
-                            </p>
-                          </div>
-                        </div>
+                      <div className="flex flex-col items-center justify-center">
+                        <img 
+                          src="/qr_ID1025457322994_01.12.25_176454928_1764549571307.jpeg" 
+                          alt="QRIS Sahala Barber"
+                          className="w-64 h-auto rounded-lg border-2 border-gray-300"
+                        />
+                        <p className="text-sm text-gray-600 mt-3">Scan QRIS untuk bayar</p>
+                        <p className="text-lg font-bold text-blue-600 mt-1">
+                          {formatCurrency(calculateTotal())}
+                        </p>
                       </div>
                     </div>
 
@@ -607,16 +606,15 @@ export function CheckoutPage() {
                 {paymentMethod === 'transfer' && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-2 text-sm">
-                      Instruksi Pembayaran (Transfer QRIS)
+                      Instruksi Pembayaran (QRIS)
                     </h3>
                     <div className="text-xs text-gray-700 space-y-1">
-                      <p><strong>Bank:</strong> BCA</p>
-                      <p><strong>Atas Nama:</strong> Sahala Barber</p>
-                      <p><strong>Nomor Rekening:</strong> 1234567890</p>
+                      <p><strong>QRIS:</strong> Dana (Sahala Barber)</p>
+                      <p className="text-gray-500">Bisa bayar dari Bank atau E-Wallet manapun</p>
                       <hr className="my-2" />
                       <ol className="list-decimal list-inside space-y-1">
-                        <li>Scan QR atau transfer ke rekening</li>
-                        <li>Upload bukti transfer</li>
+                        <li>Scan QRIS di atas</li>
+                        <li>Upload bukti pembayaran</li>
                         <li>Tunggu verifikasi admin</li>
                       </ol>
                     </div>
@@ -629,9 +627,9 @@ export function CheckoutPage() {
                       Informasi Pengambilan
                     </h3>
                     <div className="text-xs text-gray-700 space-y-1">
-                      <p><strong>Lokasi:</strong> Sahala Barber Shop</p>
-                      <p><strong>Alamat:</strong> Jl. Contoh No. 123, Jakarta</p>
-                      <p><strong>Jam Buka:</strong> 09:00 - 21:00</p>
+                      <p><strong>Kontak:</strong> 081312772527</p>
+                      <p><strong>Alamat:</strong> Sariwangi, Kec. Sariwangi, Kabupaten Tasikmalaya, Jawa Barat 46465</p>
+                      <p><strong>Jam Operasional:</strong> Setiap Hari 08.00 - 20.00</p>
                       <hr className="my-2" />
                       <ol className="list-decimal list-inside space-y-1">
                         <li>Pesanan akan disiapkan dalam 1-2 hari</li>
