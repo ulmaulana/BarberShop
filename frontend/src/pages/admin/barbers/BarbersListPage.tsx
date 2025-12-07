@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { BarberFormModal } from './BarberFormModal'
+import { BarbersSkeleton } from '../../../components/admin/SkeletonLoader'
 
 interface WorkingHours {
   [key: string]: { start: string; end: string; isOpen: boolean }
@@ -108,11 +109,7 @@ export function BarbersListPage() {
   }
   
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading barbers...</div>
-      </div>
-    )
+    return <BarbersSkeleton />
   }
   
   return (
