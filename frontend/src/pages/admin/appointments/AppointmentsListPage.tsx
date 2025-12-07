@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext'
 import { AppointmentsSkeleton } from '../../../components/admin/SkeletonLoader'
 import { formatCurrency } from '../../../utils/format'
 
+
 // API endpoint untuk notifikasi (Vercel serverless function)
 const NOTIFICATION_API = import.meta.env.DEV 
   ? '/api/send-notification' 
@@ -54,6 +55,9 @@ export function AppointmentsListPage() {
     title: '',
     body: ''
   })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [notifCurrentPage, setNotifCurrentPage] = useState(1)
+  const itemsPerPage = 5
 
   useEffect(() => {
     loadAppointments()
@@ -113,11 +117,35 @@ export function AppointmentsListPage() {
         })
       )
 
-      // Sort by date and time (newest first)
+      // Sort: pending/confirmed first (oldest at top for queue), then completed/cancelled at bottom
       appointmentsData.sort((a, b) => {
+        // Priority: pending/confirmed > completed/cancelled
+        const statusPriority = (status: string) => {
+          if (status === 'pending' || status === 'confirmed') return 0
+          return 1 // completed, cancelled go to bottom
+        }
+        
+        const priorityA = statusPriority(a.status)
+        const priorityB = statusPriority(b.status)
+        
+        // If different priority, sort by priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB
+        }
+        
+        // Same priority: sort by date/time
+        // For active (pending/confirmed): oldest first (antrian)
+        // For completed/cancelled: newest first
         const dateA = new Date(`${a.date} ${a.time}`)
         const dateB = new Date(`${b.date} ${b.time}`)
-        return dateB.getTime() - dateA.getTime()
+        
+        if (priorityA === 0) {
+          // Active appointments: oldest first (queue order)
+          return dateA.getTime() - dateB.getTime()
+        } else {
+          // Completed/cancelled: newest first
+          return dateB.getTime() - dateA.getTime()
+        }
       })
 
       setAppointments(appointmentsData)
@@ -147,7 +175,23 @@ export function AppointmentsListPage() {
     }
 
     setFilteredAppointments(filtered)
+    setCurrentPage(1) // Reset page when filter changes
+    setNotifCurrentPage(1)
   }
+
+  // Pagination helpers
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage)
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  const notifAppointments = filteredAppointments.filter(a => a.status === 'confirmed' || a.status === 'pending')
+  const notifTotalPages = Math.ceil(notifAppointments.length / itemsPerPage)
+  const paginatedNotifAppointments = notifAppointments.slice(
+    (notifCurrentPage - 1) * itemsPerPage,
+    notifCurrentPage * itemsPerPage
+  )
 
   const updateStatus = async (appointmentId: string, newStatus: Appointment['status']) => {
     try {
@@ -180,14 +224,14 @@ export function AppointmentsListPage() {
     return styles[status]
   }
 
-  const getStatusIcon = (status: Appointment['status']) => {
-    const icons = {
-      pending: '&#9203;',
-      confirmed: '&#9989;',
-      completed: '&#127881;',
-      cancelled: '&#10060;',
+  const getStatusLabel = (status: Appointment['status']) => {
+    const labels = {
+      pending: 'Menunggu',
+      confirmed: 'Dikonfirmasi',
+      completed: 'Selesai',
+      cancelled: 'Dibatalkan',
     }
-    return icons[status]
+    return labels[status]
   }
 
   // Open notification modal with pre-filled content
@@ -223,10 +267,19 @@ export function AppointmentsListPage() {
         })
       })
 
-      const result = await response.json()
+      // Check if response has content before parsing JSON
+      const contentType = response.headers.get('content-type')
+      let result = { error: 'Unknown error' }
+      
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text()
+        if (text) {
+          result = JSON.parse(text)
+        }
+      }
       
       if (!response.ok) {
-        throw new Error(result.error || 'Gagal mengirim notifikasi')
+        throw new Error(result.error || `Server error: ${response.status}`)
       }
 
       showToast(`Notifikasi berhasil dikirim ke ${appointment.customerName}`, 'success')
@@ -265,10 +318,19 @@ export function AppointmentsListPage() {
         })
       })
 
-      const result = await response.json()
+      // Check if response has content before parsing JSON
+      const contentType = response.headers.get('content-type')
+      let result = { error: 'Unknown error' }
+      
+      if (contentType && contentType.includes('application/json')) {
+        const text = await response.text()
+        if (text) {
+          result = JSON.parse(text)
+        }
+      }
       
       if (!response.ok) {
-        throw new Error(result.error || 'Gagal mengirim notifikasi')
+        throw new Error(result.error || `Server error: ${response.status}`)
       }
 
       showToast(`Notifikasi berhasil dikirim ke ${appointment.customerName}`, 'success')
@@ -288,8 +350,8 @@ export function AppointmentsListPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Appointments</h1>
-        <p className="text-gray-500 mt-1">Manage customer appointments</p>
+        <h1 className="text-3xl font-bold text-gray-800">Booking</h1>
+        <p className="text-gray-500 mt-1">Kelola Booking pelanggan</p>
       </div>
 
       {/* Stats Cards */}
@@ -307,7 +369,7 @@ export function AppointmentsListPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Pending</p>
+              <p className="text-sm text-gray-500">Menunggu</p>
               <p className="text-2xl font-bold text-yellow-600">
                 {appointments.filter(a => a.status === 'pending').length}
               </p>
@@ -319,7 +381,7 @@ export function AppointmentsListPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Confirmed</p>
+              <p className="text-sm text-gray-500">Dikonfirmasi</p>
               <p className="text-2xl font-bold text-blue-600">
                 {appointments.filter(a => a.status === 'confirmed').length}
               </p>
@@ -331,7 +393,7 @@ export function AppointmentsListPage() {
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Completed</p>
+              <p className="text-sm text-gray-500">Selesai</p>
               <p className="text-2xl font-bold text-green-600">
                 {appointments.filter(a => a.status === 'completed').length}
               </p>
@@ -348,7 +410,7 @@ export function AppointmentsListPage() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="🔍 Search by customer or service..."
+              placeholder="Cari berdasarkan pelanggan atau layanan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -376,15 +438,15 @@ export function AppointmentsListPage() {
 
       {/* Results Info */}
       <div className="text-sm text-gray-600">
-        Showing <span className="font-semibold text-gray-900">{filteredAppointments.length}</span> of {appointments.length} appointments
+        Menampilkan <span className="font-semibold text-gray-900">{filteredAppointments.length}</span> dari {appointments.length} Booking
       </div>
 
       {/* Appointments Table */}
       {filteredAppointments.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <div className="text-6xl mb-4">&#128197;</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No appointments found</h3>
-          <p className="text-gray-600">Try adjusting your filters</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Tidak ada Booking</h3>
+          <p className="text-gray-600">Coba sesuaikan filter Anda</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -393,24 +455,24 @@ export function AppointmentsListPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
+                    Pelanggan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Service
+                    Layanan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Time
+                    Tanggal & Waktu
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Aksi
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAppointments.map((appointment) => (
+                {paginatedAppointments.map((appointment) => (
                   <tr key={appointment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
@@ -437,9 +499,8 @@ export function AppointmentsListPage() {
                       <div className="text-sm text-gray-500">{appointment.time}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(appointment.status)}`}>
-                        <span dangerouslySetInnerHTML={{ __html: getStatusIcon(appointment.status) }} />
-                        <span>{appointment.status}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(appointment.status)}`}>
+                        {getStatusLabel(appointment.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -450,14 +511,14 @@ export function AppointmentsListPage() {
                             disabled={updating === appointment.id}
                             className="text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
                           >
-                            Confirm
+                            Konfirmasi
                           </button>
                           <button
                             onClick={() => updateStatus(appointment.id, 'cancelled')}
                             disabled={updating === appointment.id}
                             className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
                           >
-                            Cancel
+                            Batalkan
                           </button>
                         </div>
                       )}
@@ -467,11 +528,11 @@ export function AppointmentsListPage() {
                           disabled={updating === appointment.id}
                           className="text-green-600 hover:text-green-800 font-medium disabled:opacity-50"
                         >
-                          Complete
+                          Selesaikan
                         </button>
                       )}
                       {(appointment.status === 'completed' || appointment.status === 'cancelled') && (
-                        <span className="text-gray-400">No actions</span>
+                        <span className="text-gray-400">Tidak ada aksi</span>
                       )}
                     </td>
                   </tr>
@@ -479,6 +540,40 @@ export function AppointmentsListPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredAppointments.length)} dari {filteredAppointments.length}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 text-sm rounded ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -498,10 +593,10 @@ export function AppointmentsListPage() {
                     #
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Customer
+                    Pelanggan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Service
+                    Layanan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                     Waktu
@@ -515,13 +610,11 @@ export function AppointmentsListPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAppointments
-                  .filter(a => a.status === 'confirmed' || a.status === 'pending')
-                  .map((appointment, index) => (
+                {paginatedNotifAppointments.map((appointment, index) => (
                     <tr key={appointment.id} className="hover:bg-rose-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-100 text-rose-600 font-bold">
-                          {index + 1}
+                          {((notifCurrentPage - 1) * itemsPerPage) + index + 1}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -546,11 +639,11 @@ export function AppointmentsListPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {appointment.hasFcmToken ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <span>&#128276;</span> Aktif
+                            🔔 Aktif
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                            <span>&#128683;</span> Tidak Aktif
+                            🔕 Tidak Aktif
                           </span>
                         )}
                       </td>
@@ -564,13 +657,11 @@ export function AppointmentsListPage() {
                           >
                             {sendingNotification === appointment.id ? (
                               <>
-                                <span className="animate-spin">&#9696;</span>
-                                Mengirim...
+                                ⏳ Mengirim...
                               </>
                             ) : (
                               <>
-                                <span>&#128276;</span>
-                                Kirim
+                                🔔 Kirim
                               </>
                             )}
                           </button>
@@ -580,8 +671,7 @@ export function AppointmentsListPage() {
                             className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             title="Custom message"
                           >
-                            <span>&#9998;</span>
-                            Custom
+                            ✏️ Custom
                           </button>
                         </div>
                       </td>
@@ -591,9 +681,43 @@ export function AppointmentsListPage() {
             </table>
           </div>
           
-          {filteredAppointments.filter(a => a.status === 'confirmed' || a.status === 'pending').length === 0 && (
+          {/* Notification Pagination */}
+          {notifTotalPages > 1 && (
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing {((notifCurrentPage - 1) * itemsPerPage) + 1} - {Math.min(notifCurrentPage * itemsPerPage, notifAppointments.length)} of {notifAppointments.length}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setNotifCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={notifCurrentPage === 1}
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                {Array.from({ length: notifTotalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setNotifCurrentPage(page)}
+                    className={`px-3 py-1 text-sm rounded ${notifCurrentPage === page ? 'bg-rose-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setNotifCurrentPage(p => Math.min(notifTotalPages, p + 1))}
+                  disabled={notifCurrentPage === notifTotalPages}
+                  className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {notifAppointments.length === 0 && (
             <div className="p-8 text-center text-gray-500">
-              <div className="text-4xl mb-2">&#128276;</div>
+              <div className="text-4xl mb-2">🔔</div>
               <p>Tidak ada antrian aktif saat ini</p>
             </div>
           )}
@@ -605,9 +729,8 @@ export function AppointmentsListPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
             <div className="bg-gradient-to-r from-rose-500 to-rose-600 px-6 py-4 rounded-t-xl">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <span>&#128276;</span>
-                Kirim Notifikasi
+              <h3 className="text-lg font-semibold text-white">
+                🔔 Kirim Notifikasi
               </h3>
               <p className="text-rose-100 text-sm mt-1">
                 Ke: {notificationModal.appointment.customerName}
@@ -656,13 +779,11 @@ export function AppointmentsListPage() {
               >
                 {sendingNotification ? (
                   <>
-                    <span className="animate-spin">&#9696;</span>
-                    Mengirim...
+                    ⏳ Mengirim...
                   </>
                 ) : (
                   <>
-                    <span>&#128276;</span>
-                    Kirim Notifikasi
+                    🔔 Kirim Notifikasi
                   </>
                 )}
               </button>
