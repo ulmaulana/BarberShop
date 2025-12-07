@@ -2,17 +2,26 @@ import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useAdminAuth } from '../../../contexts/AdminAuthContext'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, Legend, LabelList, ComposedChart, Line } from 'recharts'
 import { ReportsSkeleton } from '../../../components/admin/SkeletonLoader'
+
 
 type ReportType = 'sales' | 'revenue' | 'products' | 'services' | 'barbers'
 type PeriodType = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+interface SalesItem {
+  name: string
+  quantity: number
+  price: number
+}
 
 interface SalesData {
   date: string
   productSales: number
   serviceSales: number
   total: number
+  productItems: SalesItem[]
+  serviceItems: SalesItem[]
 }
 
 interface ProductReport {
@@ -142,22 +151,52 @@ export function ReportsPage() {
         const dateKey = getDateKey(orderDate, period)
         
         if (!salesByDate[dateKey]) {
-          salesByDate[dateKey] = { date: dateKey, productSales: 0, serviceSales: 0, total: 0 }
+          salesByDate[dateKey] = { date: dateKey, productSales: 0, serviceSales: 0, total: 0, productItems: [], serviceItems: [] }
         }
         salesByDate[dateKey].productSales += order.totalAmount || 0
         salesByDate[dateKey].total += order.totalAmount || 0
+        
+        // Add product items detail
+        order.items?.forEach((item: any) => {
+          const productName = item.productName || item.name || productsCache[item.productId]?.name || 'Unknown'
+          const existingItem = salesByDate[dateKey].productItems.find(p => p.name === productName)
+          if (existingItem) {
+            existingItem.quantity += item.quantity || 1
+            existingItem.price += (item.price || 0) * (item.quantity || 1)
+          } else {
+            salesByDate[dateKey].productItems.push({
+              name: productName,
+              quantity: item.quantity || 1,
+              price: (item.price || 0) * (item.quantity || 1)
+            })
+          }
+        })
       })
 
       appointments.forEach((apt: any) => {
         const aptDate = new Date(apt.date + 'T00:00:00')
         const dateKey = getDateKey(aptDate, period)
+        const serviceName = apt.serviceName || servicesCache[apt.serviceId]?.name || 'Unknown Service'
         const price = apt.serviceId && servicesCache[apt.serviceId] ? servicesCache[apt.serviceId].price : 0
         
         if (!salesByDate[dateKey]) {
-          salesByDate[dateKey] = { date: dateKey, productSales: 0, serviceSales: 0, total: 0 }
+          salesByDate[dateKey] = { date: dateKey, productSales: 0, serviceSales: 0, total: 0, productItems: [], serviceItems: [] }
         }
         salesByDate[dateKey].serviceSales += price
         salesByDate[dateKey].total += price
+        
+        // Add service items detail
+        const existingService = salesByDate[dateKey].serviceItems.find(s => s.name === serviceName)
+        if (existingService) {
+          existingService.quantity += 1
+          existingService.price += price
+        } else {
+          salesByDate[dateKey].serviceItems.push({
+            name: serviceName,
+            quantity: 1,
+            price: price
+          })
+        }
       })
 
       setSalesData(Object.values(salesByDate).sort((a, b) => a.date.localeCompare(b.date)))
@@ -385,7 +424,7 @@ export function ReportsPage() {
           onClick={exportToCSV}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
         >
-          <span>📥</span> Export CSV
+          📥 Export CSV
         </button>
       </div>
 
@@ -480,28 +519,216 @@ export function ReportsPage() {
                 {reportType === 'revenue' ? 'Grafik Pendapatan' : 'Grafik Penjualan'}
               </h3>
               {salesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  {reportType === 'revenue' ? (
-                    <LineChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} />
-                      <Line type="monotone" dataKey="total" stroke="#10B981" strokeWidth={2} name="Total" />
-                      <Line type="monotone" dataKey="productSales" stroke="#3B82F6" strokeWidth={2} name="Produk" />
-                      <Line type="monotone" dataKey="serviceSales" stroke="#8B5CF6" strokeWidth={2} name="Layanan" />
-                    </LineChart>
-                  ) : (
-                    <BarChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                      <Tooltip formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`} />
-                      <Bar dataKey="productSales" fill="#3B82F6" name="Produk" />
-                      <Bar dataKey="serviceSales" fill="#8B5CF6" name="Layanan" />
-                    </BarChart>
-                  )}
-                </ResponsiveContainer>
+                <>
+                  <ResponsiveContainer width="100%" height={400}>
+                    {reportType === 'revenue' ? (
+                      <ComposedChart data={salesData} margin={{ top: 40, right: 30, left: 20, bottom: 80 }}>
+                        <defs>
+                          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#10B981" stopOpacity={0.05}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }} 
+                          axisLine={{ stroke: '#9CA3AF' }}
+                          tickLine={{ stroke: '#9CA3AF' }}
+                          interval={0}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 11, fill: '#6B7280' }} 
+                          tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}
+                          axisLine={{ stroke: '#9CA3AF' }}
+                          tickLine={{ stroke: '#9CA3AF' }}
+                          width={60}
+                        />
+                        <Tooltip 
+                          formatter={(value: number, name: string) => [
+                            `Rp ${value.toLocaleString('id-ID')}`, 
+                            name === 'Total Pendapatan' ? 'Total' : name
+                          ]}
+                          labelFormatter={(label) => `Tanggal: ${label}`}
+                          contentStyle={{ 
+                            backgroundColor: '#1F2937', 
+                            border: 'none', 
+                            borderRadius: '8px',
+                            color: '#fff',
+                            padding: '12px'
+                          }}
+                          labelStyle={{ color: '#9CA3AF', marginBottom: '8px', fontWeight: 'bold' }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="total" 
+                          stroke="#10B981" 
+                          strokeWidth={3}
+                          fill="url(#colorTotal)" 
+                          name="Total Pendapatan"
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="total" 
+                          stroke="#10B981" 
+                          strokeWidth={0}
+                          dot={({ cx, cy, payload }: any) => (
+                            <g key={payload.date}>
+                              <circle cx={cx} cy={cy} r={6} fill="#10B981" stroke="#fff" strokeWidth={2} />
+                              <text 
+                                x={cx} 
+                                y={cy - 15} 
+                                textAnchor="middle" 
+                                fill="#059669" 
+                                fontSize={11} 
+                                fontWeight="bold"
+                              >
+                                Rp {(payload.total / 1000).toFixed(0)}k
+                              </text>
+                            </g>
+                          )}
+                          activeDot={{ r: 8, stroke: '#10B981', strokeWidth: 2, fill: '#fff' }}
+                          name=" "
+                          legendType="none"
+                        />
+                      </ComposedChart>
+                    ) : (
+                      <BarChart data={salesData} margin={{ top: 40, right: 30, left: 20, bottom: 80 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
+                          axisLine={{ stroke: '#9CA3AF' }}
+                          interval={0}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 11, fill: '#6B7280' }} 
+                          tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}
+                          axisLine={{ stroke: '#9CA3AF' }}
+                          width={60}
+                        />
+                        <Tooltip 
+                          formatter={(value: number, name: string) => [
+                            `Rp ${value.toLocaleString('id-ID')}`, 
+                            name
+                          ]}
+                          labelFormatter={(label) => `Tanggal: ${label}`}
+                          contentStyle={{ 
+                            backgroundColor: '#1F2937', 
+                            border: 'none', 
+                            borderRadius: '8px',
+                            color: '#fff'
+                          }}
+                        />
+                        <Legend verticalAlign="top" height={36} />
+                        <Bar dataKey="productSales" fill="#3B82F6" name="Produk" radius={[4, 4, 0, 0]}>
+                          <LabelList 
+                            dataKey="productSales" 
+                            position="top" 
+                            formatter={(v: any) => v > 0 ? `${(v/1000).toFixed(0)}k` : ''} 
+                            fill="#2563EB"
+                            fontSize={10}
+                          />
+                        </Bar>
+                        <Bar dataKey="serviceSales" fill="#8B5CF6" name="Layanan" radius={[4, 4, 0, 0]}>
+                          <LabelList 
+                            dataKey="serviceSales" 
+                            position="top" 
+                            formatter={(v: any) => v > 0 ? `${(v/1000).toFixed(0)}k` : ''} 
+                            fill="#7C3AED"
+                            fontSize={10}
+                          />
+                        </Bar>
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+
+                  {/* Detail Table per Tanggal */}
+                  <div className="mt-6 overflow-x-auto">
+                    <h4 className="text-md font-semibold text-gray-700 mb-3">Detail Per Tanggal</h4>
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left py-3 px-4 font-medium text-gray-500">Tanggal</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-500">Produk Terjual</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-500">Layanan</th>
+                          <th className="text-right py-3 px-4 font-medium text-gray-500">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {salesData.map((row, index) => (
+                          <tr key={row.date} className={`border-t border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} align-top`}>
+                            <td className="py-3 px-4 font-medium text-gray-800">{row.date}</td>
+                            <td className="py-3 px-4">
+                              {row.productItems.length > 0 ? (
+                                <div className="space-y-1">
+                                  {row.productItems.map((item, i) => (
+                                    <div key={i} className="flex justify-between text-sm">
+                                      <span className="text-gray-700">
+                                        {item.name} <span className="text-gray-400">x{item.quantity}</span>
+                                      </span>
+                                      <span className="text-blue-600 ml-4">Rp {item.price.toLocaleString('id-ID')}</span>
+                                    </div>
+                                  ))}
+                                  <div className="border-t pt-1 mt-1 font-semibold flex justify-between">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="text-blue-700">Rp {row.productSales.toLocaleString('id-ID')}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              {row.serviceItems.length > 0 ? (
+                                <div className="space-y-1">
+                                  {row.serviceItems.map((item, i) => (
+                                    <div key={i} className="flex justify-between text-sm">
+                                      <span className="text-gray-700">
+                                        {item.name} <span className="text-gray-400">x{item.quantity}</span>
+                                      </span>
+                                      <span className="text-purple-600 ml-4">Rp {item.price.toLocaleString('id-ID')}</span>
+                                    </div>
+                                  ))}
+                                  <div className="border-t pt-1 mt-1 font-semibold flex justify-between">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="text-purple-700">Rp {row.serviceSales.toLocaleString('id-ID')}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-right font-bold text-green-600 align-top">
+                              Rp {row.total.toLocaleString('id-ID')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-100 font-semibold">
+                        <tr>
+                          <td className="py-3 px-4">TOTAL</td>
+                          <td className="py-3 px-4 text-right text-blue-600">
+                            Rp {salesData.reduce((sum, r) => sum + r.productSales, 0).toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-3 px-4 text-right text-purple-600">
+                            Rp {salesData.reduce((sum, r) => sum + r.serviceSales, 0).toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-3 px-4 text-right text-green-600">
+                            Rp {salesData.reduce((sum, r) => sum + r.total, 0).toLocaleString('id-ID')}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </>
               ) : (
                 <p className="text-center text-gray-400 py-8">Tidak ada data untuk periode ini</p>
               )}
