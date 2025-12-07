@@ -33,8 +33,8 @@ export class NotificationService {
 
     try {
       const notification = new Notification(title, {
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-72x72.png',
+        icon: '/icons/icon-192.svg',
+        badge: '/icons/icon-192.svg',
         requireInteraction: true, // Notifikasi tidak hilang otomatis
         ...options
       })
@@ -66,12 +66,25 @@ export class NotificationService {
     })
   }
 
-  // Play sound notification
+  // Play sound notification using Web Audio API (no external file needed)
   static playSound() {
     try {
-      const audio = new Audio('/notification-sound.mp3')
-      audio.volume = 0.5
-      audio.play().catch(err => console.warn('Cannot play sound:', err))
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.value = 800
+      oscillator.type = 'sine'
+      gainNode.gain.value = 0.3
+      
+      oscillator.start()
+      
+      // Fade out
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+      oscillator.stop(audioContext.currentTime + 0.5)
     } catch (error) {
       console.warn('Error playing sound:', error)
     }
