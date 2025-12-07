@@ -33,7 +33,7 @@ export function NotificationPermissionPrompt() {
         {/* Header */}
         <div className="bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-white">
-            <span className="text-xl">&#128276;</span>
+            <span className="text-xl">🔔</span>
             <span className="font-semibold">Aktifkan Notifikasi</span>
           </div>
           <button
@@ -41,7 +41,7 @@ export function NotificationPermissionPrompt() {
             className="text-white/80 hover:text-white transition text-xl"
             aria-label="Tutup"
           >
-            &#10005;
+            ✕
           </button>
         </div>
 
@@ -71,8 +71,7 @@ export function NotificationPermissionPrompt() {
                 </>
               ) : (
                 <>
-                  <span>&#128276;</span>
-                  Izinkan
+                  🔔 Izinkan
                 </>
               )}
             </button>
