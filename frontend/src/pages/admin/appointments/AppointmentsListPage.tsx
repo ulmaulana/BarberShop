@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore'
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
-import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
+import { AppointmentsSkeleton } from '../../../components/admin/SkeletonLoader'
 import { formatCurrency } from '../../../utils/format'
 
 // API endpoint untuk notifikasi (Vercel serverless function)
@@ -281,11 +281,7 @@ export function AppointmentsListPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
+    return <AppointmentsSkeleton />
   }
 
   return (
