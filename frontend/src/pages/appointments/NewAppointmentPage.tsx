@@ -166,6 +166,7 @@ export function NewAppointmentPage() {
             onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             error={errors.startTime}
             required
+            min={new Date().toISOString().slice(0, 16)}
           />
 
           <div>
