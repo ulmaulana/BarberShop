@@ -31,6 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Check if FIREBASE_SERVICE_ACCOUNT is set
+    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+      console.error('FIREBASE_SERVICE_ACCOUNT environment variable is not set')
+      return res.status(500).json({ 
+        error: 'Server configuration error: FIREBASE_SERVICE_ACCOUNT not configured' 
+      })
+    }
+
     const { userId, title, body, appointmentId, queueNumber } = req.body
 
     if (!userId || !title || !body) {
@@ -40,7 +48,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Initialize Firebase Admin
-    const app = getFirebaseAdmin()
+    let app
+    try {
+      app = getFirebaseAdmin()
+    } catch (initError: any) {
+      console.error('Firebase Admin init error:', initError)
+      return res.status(500).json({ 
+        error: `Firebase init error: ${initError.message}` 
+      })
+    }
     const db = admin.firestore(app)
     const messaging = admin.messaging(app)
 

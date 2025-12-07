@@ -136,7 +136,7 @@ export function OrdersListPage() {
                     <div className="mt-4 flex items-center justify-between border-t pt-4">
                       <span className="font-medium text-gray-900">Total:</span>
                       <span className="text-xl font-bold text-blue-600">
-                        {formatCurrency(order.total)}
+                        {formatCurrency(order.totalAmount ?? order.total ?? 0)}
                       </span>
                     </div>
 

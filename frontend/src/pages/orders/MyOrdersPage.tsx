@@ -28,7 +28,8 @@ interface Order {
   paymentProof?: string
   subtotal: number
   tax: number
-  total: number
+  total?: number
+  totalAmount?: number
   status: string
   createdAt: string
 }
@@ -236,7 +237,7 @@ export function MyOrdersPage() {
                   <div className="text-left sm:text-right">
                     <p className="text-xs sm:text-sm text-gray-600 mb-1">Total Pembayaran</p>
                     <p className="text-xl sm:text-2xl font-bold text-blue-600">
-                      {formatCurrency(order.total)}
+                      {formatCurrency(order.totalAmount ?? order.total ?? 0)}
                     </p>
                   </div>
                 </div>

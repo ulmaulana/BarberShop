@@ -86,7 +86,8 @@ export interface OrderItem {
 export interface Order extends BaseEntity {
   customerId: EntityId
   items: OrderItem[]
-  total: number
+  total?: number
+  totalAmount?: number
   paymentMethod: 'qris' | 'cash'
   status: 'pending_payment' | 'pending_verification' | 'processing' | 'ready_for_pickup' | 'completed' | 'payment_rejected'
   paymentProofUrl?: string
