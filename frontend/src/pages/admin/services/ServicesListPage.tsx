@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { ServiceFormModal } from './ServiceFormModal'
+import { ProductsSkeleton } from '../../../components/admin/SkeletonLoader'
 
 interface Service {
   id: string
@@ -100,11 +101,7 @@ export function ServicesListPage() {
   })
   
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading services...</div>
-      </div>
-    )
+    return <ProductsSkeleton />
   }
   
   return (
