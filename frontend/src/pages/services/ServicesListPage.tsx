@@ -28,7 +28,9 @@ export function ServicesListPage() {
   const loadServices = async () => {
     try {
       const data = await servicesService.getAll()
-      setServices(data as Service[])
+      // Filter only active services for customer view
+      const activeServices = (data as Service[]).filter(s => s.isActive !== false)
+      setServices(activeServices)
     } catch (error) {
       showToast(handleError(error), 'error')
     } finally {
