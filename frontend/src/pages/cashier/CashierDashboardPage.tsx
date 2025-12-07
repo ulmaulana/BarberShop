@@ -112,7 +112,7 @@ export function CashierDashboardPage() {
                 <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">Order #{order.id.slice(0, 8)}</p>
-                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.total)}</p>
+                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.totalAmount ?? order.total ?? 0)}</p>
                     <p className="text-sm text-gray-600">{formatDateTime(order.createdAt)}</p>
                   </div>
                   <Button
@@ -144,7 +144,7 @@ export function CashierDashboardPage() {
                 <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                   <div>
                     <p className="font-medium text-gray-900">Order #{order.id.slice(0, 8)}</p>
-                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.total)}</p>
+                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.totalAmount ?? order.total ?? 0)}</p>
                   </div>
                   <Button
                     size="sm"
@@ -172,7 +172,7 @@ export function CashierDashboardPage() {
                 <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0">
                   <div>
                     <p className="font-medium text-gray-900">Order #{order.id.slice(0, 8)}</p>
-                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.total)}</p>
+                    <p className="text-sm text-gray-600">Total: {formatCurrency(order.totalAmount ?? order.total ?? 0)}</p>
                   </div>
                   <Button
                     size="sm"
@@ -204,7 +204,7 @@ export function CashierDashboardPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">Total:</p>
-              <p className="text-xl font-bold text-blue-600">{formatCurrency(selectedOrder.total)}</p>
+              <p className="text-xl font-bold text-blue-600">{formatCurrency(selectedOrder.totalAmount ?? selectedOrder.total ?? 0)}</p>
             </div>
             {selectedOrder.paymentProofUrl && (
               <div>
