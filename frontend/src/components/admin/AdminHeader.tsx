@@ -1,10 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../contexts/AdminAuthContext'
 import { useToast } from '../../contexts/ToastContext'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { adminFirestore } from '../../config/firebaseAdmin'
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void
+}
+
+interface Notification {
+  id: string
+  type: 'payment' | 'stock' | 'appointment' | 'order'
+  message: string
+  icon: string
 }
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
@@ -13,6 +22,74 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   const { showToast } = useToast()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  
+  // Realtime notifications
+  useEffect(() => {
+    const notifs: Notification[] = []
+    
+    // Listen for pending payments
+    const ordersRef = collection(adminFirestore, 'orders')
+    const pendingPaymentsQuery = query(ordersRef, where('status', '==', 'pending_payment'))
+    
+    const unsubOrders = onSnapshot(pendingPaymentsQuery, (snapshot) => {
+      const pendingCount = snapshot.size
+      const updatedNotifs = [...notifs.filter(n => n.type !== 'payment')]
+      
+      if (pendingCount > 0) {
+        updatedNotifs.push({
+          id: 'pending-payments',
+          type: 'payment',
+          message: `${pendingCount} pembayaran menunggu verifikasi`,
+          icon: '💳'
+        })
+      }
+      
+      // Check low stock products
+      const productsRef = collection(adminFirestore, 'products')
+      onSnapshot(productsRef, (prodSnapshot) => {
+        const lowStockProducts = prodSnapshot.docs.filter(doc => {
+          const data = doc.data()
+          return data.stock <= (data.minStockThreshold || 5)
+        })
+        
+        const finalNotifs = [...updatedNotifs.filter(n => n.type !== 'stock')]
+        
+        if (lowStockProducts.length > 0) {
+          finalNotifs.push({
+            id: 'low-stock',
+            type: 'stock',
+            message: `${lowStockProducts.length} produk stok menipis`,
+            icon: '📦'
+          })
+        }
+        
+        // Check pending appointments
+        const appointmentsRef = collection(adminFirestore, 'appointments')
+        const pendingAptsQuery = query(appointmentsRef, where('status', '==', 'pending'))
+        
+        onSnapshot(pendingAptsQuery, (aptSnapshot) => {
+          const pendingApts = aptSnapshot.size
+          const allNotifs = [...finalNotifs.filter(n => n.type !== 'appointment')]
+          
+          if (pendingApts > 0) {
+            allNotifs.push({
+              id: 'pending-appointments',
+              type: 'appointment',
+              message: `${pendingApts} appointment menunggu konfirmasi`,
+              icon: '📅'
+            })
+          }
+          
+          setNotifications(allNotifs)
+        })
+      })
+    })
+    
+    return () => {
+      unsubOrders()
+    }
+  }, [])
   
   const handleLogout = async () => {
     try {
@@ -23,13 +100,6 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       showToast('Failed to logout', 'error')
     }
   }
-  
-  // Mock notifications (nanti dari Firestore)
-  const notifications = [
-    { id: 1, type: 'payment', message: '3 payments pending verification' },
-    { id: 2, type: 'stock', message: '2 products low stock' },
-    { id: 3, type: 'order', message: '5 new orders today' },
-  ]
   
   const unreadCount = notifications.length
   
@@ -53,8 +123,11 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           </div>
         </div>
         
+        {/* Spacer for desktop to push right side to end */}
+        <div className="hidden lg:block flex-1"></div>
+        
         {/* Right Side - Notifications & Profile */}
-        <div className="flex items-center gap-3 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-6 ml-auto">
         {/* Notifications */}
         <div className="relative">
           <button
@@ -72,14 +145,21 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-50">
               <div className="p-4 border-b">
-                <h3 className="font-semibold text-gray-800">Notifications</h3>
+                <h3 className="font-semibold text-gray-800">Notifikasi</h3>
               </div>
               <div className="max-h-96 overflow-auto">
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="p-4 border-b hover:bg-gray-50 cursor-pointer">
-                    <p className="text-sm text-gray-700">{notif.message}</p>
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <div key={notif.id} className="p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center gap-3">
+                      <span className="text-xl">{notif.icon}</span>
+                      <p className="text-sm text-gray-700">{notif.message}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">
+                    Tidak ada notifikasi
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -92,9 +172,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
           >
             <span className="text-2xl">👤</span>
-            <span className="text-sm font-medium text-gray-700">
-              {user?.email || 'Admin'}
-            </span>
+            <span className="text-sm font-medium text-gray-700">Admin</span>
             <span className="text-gray-400">▼</span>
           </button>
           
