@@ -1,10 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import * as admin from 'firebase-admin'
+import admin from 'firebase-admin'
+import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { getMessaging } from 'firebase-admin/messaging'
+
+// Lazy initialized app
+let firebaseApp: admin.app.App | null = null
 
 // Initialize Firebase Admin (singleton pattern)
-function getFirebaseAdmin() {
-  if (admin.apps.length > 0) {
-    return admin.apps[0]!
+function getFirebaseAdmin(): admin.app.App {
+  if (firebaseApp) {
+    return firebaseApp
   }
 
   // Parse service account dari environment variable
@@ -22,14 +27,21 @@ function getFirebaseAdmin() {
   }
 
   // Validate required fields
-  if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing required fields (project_id, private_key, or client_email)')
+  if (!serviceAccount.projectId && !(serviceAccount as any).project_id) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing project_id')
+  }
+  if (!serviceAccount.privateKey && !(serviceAccount as any).private_key) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing private_key')
+  }
+  if (!serviceAccount.clientEmail && !(serviceAccount as any).client_email) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing client_email')
   }
 
-  return admin.initializeApp({
+  firebaseApp = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    projectId: serviceAccount.project_id
   })
+
+  return firebaseApp
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -56,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Initialize Firebase Admin
-    let app
+    let app: admin.app.App
     try {
       app = getFirebaseAdmin()
     } catch (initError: any) {
@@ -65,8 +77,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error: `Firebase init error: ${initError.message}` 
       })
     }
-    const db = admin.firestore(app)
-    const messaging = admin.messaging(app)
+    const db = getFirestore(app)
+    const messaging = getMessaging(app)
 
     // Get user's FCM token from Firestore
     const userDoc = await db.collection('users').doc(userId).get()
@@ -117,7 +129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body,
       appointmentId: appointmentId || null,
       queueNumber: queueNumber || null,
-      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+      sentAt: FieldValue.serverTimestamp(),
       fcmMessageId: response,
     })
 
