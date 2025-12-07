@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, getDoc, onSnapshot } from 'fire
 import { adminFirestore } from '../../config/firebaseAdmin'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
+
 interface Stats {
   totalRevenue: number
   netProfit: number
@@ -41,13 +42,6 @@ interface TopService {
   revenue: number
 }
 
-interface TopBarber {
-  id: string
-  name: string
-  appointments: number
-  rating: number
-  revenue: number
-}
 
 interface RevenueData {
   date: string
@@ -77,7 +71,6 @@ export function AdminDashboardPage() {
   })
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
   const [topServices, setTopServices] = useState<TopService[]>([])
-  const [topBarbers, setTopBarbers] = useState<TopBarber[]>([])
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([])
   const [statsLoading, setStatsLoading] = useState(true)
@@ -241,17 +234,6 @@ export function AdminDashboardPage() {
         }
       }
       
-      const topBarbersList = Object.entries(barberStats)
-        .map(([id, data]) => ({
-          id,
-          name: data.name,
-          appointments: data.appointments,
-          rating: data.ratingCount > 0 ? data.totalRating / data.ratingCount : 0,
-          revenue: data.revenue
-        }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 3)
-      
       // Calculate Revenue Trend (Last 30 Days)
       const dailyRevenue: Record<string, number> = {}
       const today = new Date()
@@ -396,7 +378,6 @@ export function AdminDashboardPage() {
       
       setTopProducts(topProductsList)
       setTopServices(topServicesList)
-      setTopBarbers(topBarbersList)
       setRevenueData(revenueChartData)
       
       // Build Recent Transactions list
@@ -469,7 +450,7 @@ export function AdminDashboardPage() {
   
   const loadDashboardStats = async () => {
     try {
-      console.log('🔄 Loading dashboard stats...', new Date().toLocaleTimeString())
+      console.log('[Dashboard] Loading dashboard stats...', new Date().toLocaleTimeString())
       
       let totalRevenue = 0
       let totalOrders = 0
@@ -479,7 +460,7 @@ export function AdminDashboardPage() {
       const ordersRef = collection(adminFirestore, 'orders')
       const ordersSnapshot = await getDocs(ordersRef)
       
-      console.log(`📦 Total orders in DB: ${ordersSnapshot.size}`)
+      console.log(`[Dashboard] Total orders in DB: ${ordersSnapshot.size}`)
       
       ordersSnapshot.docs.forEach((orderDoc) => {
         const order = orderDoc.data()
@@ -488,11 +469,11 @@ export function AdminDashboardPage() {
           const amount = order.totalAmount || 0
           totalRevenue += amount
           totalOrders++
-          console.log(`💰 Order ${orderDoc.id}: Rp ${amount.toLocaleString('id-ID')} (${order.status})`)
+          console.log(`[Dashboard] Order ${orderDoc.id}: Rp ${amount.toLocaleString('id-ID')} (${order.status})`)
         }
       })
       
-      console.log(`📊 Total Orders Revenue: Rp ${totalRevenue.toLocaleString('id-ID')} dari ${totalOrders} orders`)
+      console.log(`[Dashboard] Total Orders Revenue: Rp ${totalRevenue.toLocaleString('id-ID')} dari ${totalOrders} orders`)
       
       // Get appointments data (layanan yang sudah dikonfirmasi selesai)
       const appointmentsRef = collection(adminFirestore, 'appointments')
@@ -570,7 +551,7 @@ export function AdminDashboardPage() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 3)
       
-      console.log('📦 Top Products:', topProductsList)
+      console.log('[Dashboard] Top Products:', topProductsList)
       
       // Calculate Top Services dari appointments
       const serviceStats: Record<string, { name: string; bookings: number; revenue: number }> = {}
@@ -653,17 +634,6 @@ export function AdminDashboardPage() {
         }
       }
       
-      const topBarbersList = Object.entries(barberStats)
-        .map(([id, data]) => ({
-          id,
-          name: data.name,
-          appointments: data.appointments,
-          rating: data.ratingCount > 0 ? data.totalRating / data.ratingCount : 0,
-          revenue: data.revenue
-        }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 3)
-      
       // Calculate Revenue Trend (Last 30 Days)
       const dailyRevenue: Record<string, number> = {}
       const today = new Date()
@@ -739,7 +709,6 @@ export function AdminDashboardPage() {
       
       setTopProducts(topProductsList)
       setTopServices(topServicesList)
-      setTopBarbers(topBarbersList)
       setRevenueData(revenueChartData)
       
       setStatsLoading(false)
@@ -759,15 +728,14 @@ export function AdminDashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Welcome back, Admin</p>
+          <p className="text-gray-500 mt-1">Selamat datang kembali, Admin</p>
         </div>
         <button
           onClick={loadDashboardStats}
           disabled={statsLoading}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
         >
-          <span>🔄</span>
-          <span>{statsLoading ? 'Loading...' : 'Refresh Stats'}</span>
+          🔄 {statsLoading ? 'Memuat...' : 'Segarkan Data'}
         </button>
       </div>
       
@@ -800,7 +768,7 @@ export function AdminDashboardPage() {
             <div>
               <p className="text-sm text-gray-500 mb-1">Transaksi (30 hari)</p>
               <p className="text-2xl font-bold text-gray-800">
-                {comparison.currentOrders} orders
+                {comparison.currentOrders} pesanan
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <span className={`text-sm font-medium ${
@@ -811,7 +779,7 @@ export function AdminDashboardPage() {
                 <span className="text-xs text-gray-400">vs bulan lalu</span>
               </div>
             </div>
-            <div className="text-4xl">�</div>
+            <div className="text-4xl">🛒</div>
           </div>
         </div>
         
@@ -820,11 +788,11 @@ export function AdminDashboardPage() {
           <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Pending Payments</p>
+                <p className="text-sm text-gray-500 mb-1">Menunggu Pembayaran</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {stats.pendingPayments} orders
+                  {stats.pendingPayments} pesanan
                 </p>
-                <p className="text-sm text-blue-600 mt-2">Click to verify →</p>
+                <p className="text-sm text-blue-600 mt-2">Klik untuk verifikasi →</p>
               </div>
               <div className="text-4xl">⏳</div>
             </div>
@@ -835,7 +803,7 @@ export function AdminDashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Avg Transaction</p>
+              <p className="text-sm text-gray-500 mb-1">Rata-rata Transaksi</p>
               <p className="text-2xl font-bold text-gray-800">
                 Rp {Math.round(comparison.currentAvgTransaction).toLocaleString('id-ID')}
               </p>
@@ -884,14 +852,14 @@ export function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-800">
-              Revenue Trend
+              Tren Pendapatan
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Last 30 days performance <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">LIVE</span></p>
+            <p className="text-sm text-gray-500 mt-1">Performa 30 hari terakhir <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">LIVE</span></p>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-              <span className="text-gray-600">Revenue</span>
+              <span className="text-gray-600">Pendapatan</span>
             </div>
           </div>
         </div>
@@ -917,7 +885,7 @@ export function AdminDashboardPage() {
                   borderRadius: '8px',
                   padding: '12px'
                 }}
-                formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue']}
+                formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, 'Pendapatan']}
               />
               <Line 
                 type="monotone" 
@@ -931,7 +899,7 @@ export function AdminDashboardPage() {
           </ResponsiveContainer>
         ) : (
           <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
-            <p className="text-gray-400">No revenue data available</p>
+            <p className="text-gray-400">Belum ada data pendapatan</p>
           </div>
         )}
       </div>
@@ -973,7 +941,7 @@ export function AdminDashboardPage() {
                             ? 'bg-blue-100 text-blue-700' 
                             : 'bg-green-100 text-green-700'
                         }`}>
-                          {tx.type === 'product' ? '📦 Produk' : '✂️ Layanan'}
+                          {tx.type === 'product' ? 'Produk' : 'Layanan'}
                         </span>
                       </td>
                       <td className="py-3 px-2">
@@ -1060,7 +1028,7 @@ export function AdminDashboardPage() {
         {/* Top Products */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            🏆 Top Products
+            🏆 Produk Terlaris
           </h3>
           <div className="space-y-3">
             {topProducts.length > 0 ? (
@@ -1068,7 +1036,7 @@ export function AdminDashboardPage() {
                 <div key={product.id} className="flex justify-between items-center">
                   <div>
                     <p className="font-medium text-gray-800">{product.name}</p>
-                    <p className="text-sm text-gray-500">{product.sold} sold</p>
+                    <p className="text-sm text-gray-500">{product.sold} terjual</p>
                   </div>
                   <p className="font-semibold text-gray-800">
                     Rp {product.revenue.toLocaleString('id-ID')}
@@ -1085,14 +1053,14 @@ export function AdminDashboardPage() {
             to="/adminpanel/products"
             className="block text-center text-sm text-blue-600 hover:text-blue-700 mt-4"
           >
-            View All →
+            Lihat Semua →
           </Link>
         </div>
         
         {/* Top Services */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            ✂️ Top Services
+            ✂️ Layanan Terlaris
           </h3>
           <div className="space-y-3">
             {topServices.length > 0 ? (
@@ -1100,7 +1068,7 @@ export function AdminDashboardPage() {
                 <div key={service.id} className="flex justify-between items-center">
                   <div>
                     <p className="font-medium text-gray-800">{service.name}</p>
-                    <p className="text-sm text-gray-500">{service.bookings} bookings</p>
+                    <p className="text-sm text-gray-500">{service.bookings} booking</p>
                   </div>
                   <p className="font-semibold text-gray-800">
                     Rp {service.revenue.toLocaleString('id-ID')}
@@ -1117,41 +1085,7 @@ export function AdminDashboardPage() {
             to="/adminpanel/services"
             className="block text-center text-sm text-blue-600 hover:text-blue-700 mt-4"
           >
-            View All →
-          </Link>
-        </div>
-        
-        {/* Top Barbers */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            💈 Top Barbers
-          </h3>
-          <div className="space-y-3">
-            {topBarbers.length > 0 ? (
-              topBarbers.map((barber) => (
-                <div key={barber.id} className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-800">{barber.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {barber.rating > 0 ? `${barber.rating.toFixed(1)}⭐` : 'No rating'} ({barber.appointments} appts)
-                    </p>
-                  </div>
-                  <p className="font-semibold text-gray-800">
-                    Rp {barber.revenue.toLocaleString('id-ID')}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-400">
-                <p className="text-sm">Belum ada data barber</p>
-              </div>
-            )}
-          </div>
-          <Link
-            to="/adminpanel/barbers"
-            className="block text-center text-sm text-blue-600 hover:text-blue-700 mt-4"
-          >
-            View All →
+            Lihat Semua →
           </Link>
         </div>
       </div>
