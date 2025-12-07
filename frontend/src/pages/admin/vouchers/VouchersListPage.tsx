@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
-import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
+import { VouchersSkeleton } from '../../../components/admin/SkeletonLoader'
 import { formatCurrency } from '../../../utils/format'
 import { VoucherFormModal } from './VoucherFormModal'
 
@@ -125,11 +125,7 @@ export function VouchersListPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
+    return <VouchersSkeleton />
   }
 
   return (
