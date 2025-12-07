@@ -64,11 +64,11 @@ export function AdminLoginPage() {
         return
       }
       
-      // Check email verification
-      if (!user.emailVerified) {
-        showToast('Please verify your email first', 'error')
-        return
-      }
+      // Check email verification (disabled for development)
+      // if (!user.emailVerified) {
+      //   showToast('Please verify your email first', 'error')
+      //   return
+      // }
       
       // Success - redirect ke admin dashboard
       showToast('Welcome back, Admin!', 'success')
