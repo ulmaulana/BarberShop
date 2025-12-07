@@ -13,8 +13,8 @@ const navItems: NavItem[] = [
   { path: '/adminpanel/products', label: 'Products', icon: '📦' },
   { path: '/adminpanel/services', label: 'Services', icon: '✂️' },
   { path: '/adminpanel/vouchers', label: 'Vouchers', icon: '🎟️' },
-  { path: '/adminpanel/barbers', label: 'Barbers', icon: '💈' },
   { path: '/adminpanel/financial', label: 'Financial', icon: '💰' },
+  { path: '/adminpanel/reports', label: 'Reports', icon: '📈' },
 ]
 
 interface AdminSidebarProps {
