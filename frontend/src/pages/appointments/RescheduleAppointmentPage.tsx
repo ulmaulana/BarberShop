@@ -189,6 +189,13 @@ export function RescheduleAppointmentPage() {
     return day === selectedDate.getDate()
   }
 
+  const isPastDay = (day: number) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dateToCheck = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day)
+    return dateToCheck < today
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -285,23 +292,27 @@ export function RescheduleAppointmentPage() {
                     {day}
                   </div>
                 ))}
-                {generateCalendarDays().map((day, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => day && selectDay(day)}
-                    disabled={!day}
-                    className={`
-                      aspect-square p-2 rounded-lg text-sm font-medium transition
-                      ${!day ? 'invisible' : ''}
-                      ${isSelected(day!) ? 'bg-blue-600 text-white' : ''}
-                      ${isToday(day!) && !isSelected(day!) ? 'bg-blue-100 text-blue-900' : ''}
-                      ${!isSelected(day!) && !isToday(day!) ? 'hover:bg-gray-100 text-gray-900' : ''}
-                    `}
-                  >
-                    {day}
-                  </button>
-                ))}
+                {generateCalendarDays().map((day, index) => {
+                  const past = day ? isPastDay(day) : false
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => day && !past && selectDay(day)}
+                      disabled={!day || past}
+                      className={`
+                        aspect-square p-2 rounded-lg text-sm font-medium transition
+                        ${!day ? 'invisible' : ''}
+                        ${past ? 'text-gray-300 cursor-not-allowed' : ''}
+                        ${!past && isSelected(day!) ? 'bg-blue-600 text-white' : ''}
+                        ${!past && isToday(day!) && !isSelected(day!) ? 'bg-blue-100 text-blue-900' : ''}
+                        ${!past && !isSelected(day!) && !isToday(day!) ? 'hover:bg-gray-100 text-gray-900' : ''}
+                      `}
+                    >
+                      {day}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
