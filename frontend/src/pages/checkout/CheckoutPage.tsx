@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, query, where, getDocs, doc, getDoc, addDoc, writeBatch } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { firestore, firebaseStorage } from '../../config/firebase'
+import { collection, query, where, getDocs, doc, getDoc, addDoc, writeBatch, updateDoc, increment } from 'firebase/firestore'
+import { firestore } from '../../config/firebase'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -158,14 +157,56 @@ export function CheckoutPage() {
   }
 
   const uploadPaymentProof = async (file: File): Promise<string> => {
-    const timestamp = Date.now()
-    const fileName = `payment-proofs/${user!.uid}/${timestamp}-${file.name}`
-    const storageRef = ref(firebaseStorage, fileName)
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
     
-    await uploadBytes(storageRef, file)
-    const downloadURL = await getDownloadURL(storageRef)
+    console.log('[Upload] Starting upload...', { cloudName: cloudName ? 'SET' : 'MISSING', uploadPreset: uploadPreset ? 'SET' : 'MISSING' })
     
-    return downloadURL
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Cloudinary configuration is missing. Please check VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in .env')
+    }
+    
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', uploadPreset)
+    formData.append('folder', 'payment-proofs')
+    
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+    
+    // Add timeout with AbortController
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+    
+    try {
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('[Upload] Cloudinary upload error:', data)
+        const errorMsg = data.error?.message || 'Upload failed'
+        throw new Error(errorMsg)
+      }
+      
+      if (!data.secure_url) {
+        throw new Error('Upload succeeded but no URL returned')
+      }
+      
+      console.log('[Upload] Success:', data.secure_url)
+      return data.secure_url
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Upload timeout - koneksi terlalu lambat. Silakan coba lagi.')
+      }
+      throw error
+    }
   }
 
   const applyVoucher = async () => {
@@ -259,12 +300,30 @@ export function CheckoutPage() {
       
       // Upload payment proof if transfer method
       if (paymentMethod === 'transfer' && paymentProof) {
-        paymentProofUrl = await uploadPaymentProof(paymentProof)
+        console.log('[Checkout] Uploading payment proof to Cloudinary...')
+        try {
+          paymentProofUrl = await uploadPaymentProof(paymentProof)
+          console.log('[Checkout] Upload success:', paymentProofUrl)
+        } catch (uploadError) {
+          console.error('[Checkout] Upload failed:', uploadError)
+          showToast('Gagal upload bukti pembayaran. Silakan coba lagi.', 'error')
+          setSubmitting(false)
+          return
+        }
       }
+
+      // Generate order number
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+
+      console.log('[Checkout] Creating order...')
 
       // Create order
       const orderData = {
-        userId: user.uid,
+        orderNumber,
+        customerId: user.uid,
+        customerName: fullName,
+        customerEmail: user.email || '',
+        customerPhone: phone,
         items: cartItems.map(item => ({
           productId: item.productId,
           productName: item.productName,
@@ -277,7 +336,8 @@ export function CheckoutPage() {
           address,
         },
         paymentMethod,
-        paymentProof: paymentProofUrl,
+        paymentProofUrl: paymentProofUrl,
+        paymentProofUploadedAt: paymentProofUrl ? new Date().toISOString() : null,
         notes,
         subtotal: calculateSubtotal(),
         discount: calculateDiscount(),
@@ -293,19 +353,37 @@ export function CheckoutPage() {
       }
 
       const orderRef = await addDoc(collection(firestore, 'orders'), orderData)
+      console.log('[Checkout] Order created:', orderRef.id)
+
+      // Update voucher usage count if voucher was applied
+      if (appliedVoucher?.id) {
+        console.log('[Checkout] Updating voucher usage...')
+        try {
+          await updateDoc(doc(firestore, 'vouchers', appliedVoucher.id), {
+            usedCount: increment(1)
+          })
+          console.log('[Checkout] Voucher usage updated')
+        } catch (voucherError) {
+          console.error('[Checkout] Failed to update voucher usage:', voucherError)
+          // Non-blocking - order still proceeds
+        }
+      }
 
       // Clear cart using batch
+      console.log('[Checkout] Clearing cart...')
       const batch = writeBatch(firestore)
       cartItems.forEach(item => {
         batch.delete(doc(firestore, 'cart', item.id))
       })
       await batch.commit()
+      console.log('[Checkout] Cart cleared')
 
       showToast('Pesanan berhasil dibuat!', 'success')
       navigate(`/orders/${orderRef.id}/confirmation`)
     } catch (error) {
-      console.error('Error placing order:', error)
-      showToast('Gagal membuat pesanan', 'error')
+      console.error('[Checkout] Error placing order:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Gagal membuat pesanan'
+      showToast(errorMessage, 'error')
     } finally {
       setSubmitting(false)
     }
