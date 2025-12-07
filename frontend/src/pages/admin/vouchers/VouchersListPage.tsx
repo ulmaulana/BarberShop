@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { collection, doc, deleteDoc, updateDoc, onSnapshot } from 'firebase/firestore'
 import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { VouchersSkeleton } from '../../../components/admin/SkeletonLoader'
@@ -27,16 +27,12 @@ export function VouchersListPage() {
   const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Real-time listener for vouchers
   useEffect(() => {
-    loadVouchers()
-  }, [])
-
-  const loadVouchers = async () => {
-    try {
-      setLoading(true)
-      const vouchersRef = collection(adminFirestore, 'vouchers')
-      const snapshot = await getDocs(vouchersRef)
-      
+    setLoading(true)
+    const vouchersRef = collection(adminFirestore, 'vouchers')
+    
+    const unsubscribe = onSnapshot(vouchersRef, (snapshot) => {
       const vouchersData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -48,13 +44,15 @@ export function VouchersListPage() {
       })
 
       setVouchers(vouchersData)
-    } catch (error) {
+      setLoading(false)
+    }, (error) => {
       console.error('Error loading vouchers:', error)
       showToast('Failed to load vouchers', 'error')
-    } finally {
       setLoading(false)
-    }
-  }
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   const handleAdd = () => {
     setEditingVoucher(null)
@@ -100,7 +98,7 @@ export function VouchersListPage() {
   const handleModalClose = () => {
     setShowModal(false)
     setEditingVoucher(null)
-    loadVouchers()
+    // Real-time listener will auto-update
   }
 
   const isExpired = (expiryDate: string) => {
@@ -113,15 +111,15 @@ export function VouchersListPage() {
 
   const getStatusBadge = (voucher: Voucher) => {
     if (!voucher.isActive) {
-      return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Inactive</span>
+      return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-semibold">Tidak Aktif</span>
     }
     if (isExpired(voucher.expiryDate)) {
-      return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Expired</span>
+      return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Kedaluwarsa</span>
     }
     if (isLimitReached(voucher)) {
-      return <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">Limit Reached</span>
+      return <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">Batas Tercapai</span>
     }
-    return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Active</span>
+    return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Aktif</span>
   }
 
   if (loading) {
@@ -133,38 +131,38 @@ export function VouchersListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Vouchers</h1>
-          <p className="text-gray-600 mt-1">Manage discount vouchers</p>
+          <h1 className="text-2xl font-bold text-gray-900">Voucher</h1>
+          <p className="text-gray-600 mt-1">Kelola voucher diskon</p>
         </div>
         <button
           onClick={handleAdd}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition flex items-center gap-2"
         >
           <span className="text-xl">+</span>
-          Add Voucher
+          Tambah Voucher
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Total Vouchers</div>
+          <div className="text-sm text-gray-600 mb-1">Total Voucher</div>
           <div className="text-2xl font-bold text-gray-900">{vouchers.length}</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Active</div>
+          <div className="text-sm text-gray-600 mb-1">Aktif</div>
           <div className="text-2xl font-bold text-green-600">
             {vouchers.filter(v => v.isActive && !isExpired(v.expiryDate) && !isLimitReached(v)).length}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Expired</div>
+          <div className="text-sm text-gray-600 mb-1">Kedaluwarsa</div>
           <div className="text-2xl font-bold text-red-600">
             {vouchers.filter(v => isExpired(v.expiryDate)).length}
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-          <div className="text-sm text-gray-600 mb-1">Total Usage</div>
+          <div className="text-sm text-gray-600 mb-1">Total Penggunaan</div>
           <div className="text-2xl font-bold text-blue-600">
             {vouchers.reduce((sum, v) => sum + v.usedCount, 0)}
           </div>
@@ -176,13 +174,13 @@ export function VouchersListPage() {
         {vouchers.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🎟️</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No vouchers yet</h3>
-            <p className="text-gray-600 mb-4">Create your first discount voucher</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Belum ada voucher</h3>
+            <p className="text-gray-600 mb-4">Buat voucher diskon pertama Anda</p>
             <button
               onClick={handleAdd}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
             >
-              Add Voucher
+              Tambah Voucher
             </button>
           </div>
         ) : (
@@ -191,25 +189,25 @@ export function VouchersListPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
+                    Kode
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Discount
+                    Diskon
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Min Purchase
+                    Min. Pembelian
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Usage
+                    Penggunaan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Expiry
+                    Kedaluwarsa
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Aksi
                   </th>
                 </tr>
               </thead>
@@ -231,7 +229,7 @@ export function VouchersListPage() {
                         )}
                         {voucher.maxDiscount && (
                           <div className="text-xs text-gray-500">
-                            max {formatCurrency(voucher.maxDiscount)}
+                            maks {formatCurrency(voucher.maxDiscount)}
                           </div>
                         )}
                       </div>
@@ -261,20 +259,20 @@ export function VouchersListPage() {
                               : 'bg-green-100 text-green-700 hover:bg-green-200'
                           }`}
                         >
-                          {voucher.isActive ? 'Deactivate' : 'Activate'}
+                          {voucher.isActive ? 'Nonaktifkan' : 'Aktifkan'}
                         </button>
                         <button
                           onClick={() => handleEdit(voucher)}
                           className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium transition"
                         >
-                          Edit
+                          Ubah
                         </button>
                         <button
                           onClick={() => handleDelete(voucher.id)}
                           disabled={deletingId === voucher.id}
                           className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition disabled:opacity-50"
                         >
-                          {deletingId === voucher.id ? '...' : 'Delete'}
+                          {deletingId === voucher.id ? '...' : 'Hapus'}
                         </button>
                       </div>
                     </td>
