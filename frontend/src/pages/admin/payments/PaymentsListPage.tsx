@@ -4,6 +4,7 @@ import { adminFirestore } from '../../../config/firebaseAdmin'
 import { useToast } from '../../../contexts/ToastContext'
 import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { PaymentVerificationModal } from './PaymentVerificationModal'
+import { PaymentsSkeleton } from '../../../components/admin/SkeletonLoader'
 
 interface Order {
   id: string
@@ -121,14 +122,7 @@ export function PaymentsListPage() {
   const cancelledCount = orders.filter(o => o.status === 'payment_rejected' || o.status === 'cancelled').length
   
   if (authLoading || loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">⏳</div>
-          <p className="text-gray-600">Memuat data pembayaran...</p>
-        </div>
-      </div>
-    )
+    return <PaymentsSkeleton />
   }
   
   if (!user) {
