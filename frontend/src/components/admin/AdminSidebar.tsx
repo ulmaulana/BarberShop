@@ -7,14 +7,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/adminpanel/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/adminpanel/appointments', label: 'Appointments', icon: '📅' },
-  { path: '/adminpanel/payments', label: 'Payments', icon: '💳' },
-  { path: '/adminpanel/products', label: 'Products', icon: '📦' },
-  { path: '/adminpanel/services', label: 'Services', icon: '✂️' },
-  { path: '/adminpanel/vouchers', label: 'Vouchers', icon: '🎟️' },
-  { path: '/adminpanel/financial', label: 'Financial', icon: '💰' },
-  { path: '/adminpanel/reports', label: 'Reports', icon: '📈' },
+  { path: '/adminpanel/dashboard', label: 'Dashboard', icon: '\ud83d\udcca' },
+  { path: '/adminpanel/appointments', label: 'Booking', icon: '\ud83d\udcc5' },
+  { path: '/adminpanel/payments', label: 'Payments', icon: '\ud83d\udcb3' },
+  { path: '/adminpanel/products', label: 'Products', icon: '\ud83d\udce6' },
+  { path: '/adminpanel/services', label: 'Services', icon: '\u2702\ufe0f' },
+  { path: '/adminpanel/vouchers', label: 'Vouchers', icon: '\ud83c\udf9f' },
+  { path: '/adminpanel/financial', label: 'Financial', icon: '\ud83d\udcb0' },
+  { path: '/adminpanel/reports', label: 'Reports', icon: '\ud83d\udce8' },
 ]
 
 interface AdminSidebarProps {
