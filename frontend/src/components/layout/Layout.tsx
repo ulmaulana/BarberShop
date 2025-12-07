@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { ChatAssistant } from '../chat/ChatAssistant'
+import { NotificationPermissionPrompt } from '../NotificationPermissionPrompt'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 
@@ -42,6 +43,7 @@ export function Layout({ requireSidebar = false }: LayoutProps) {
       </div>
       <BottomNav />
       <ChatAssistant />
+      <NotificationPermissionPrompt />
     </div>
   )
 }
