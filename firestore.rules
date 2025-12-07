@@ -107,5 +107,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isOwner();
     }
+    
+    // Expenses - owner/admin only
+    match /expenses/{expenseId} {
+      allow read: if isOwner();
+      allow write: if isOwner();
+    }
   }
 }
