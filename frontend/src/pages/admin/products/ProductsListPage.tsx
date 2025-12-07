@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext'
 import { ProductFormModal } from './ProductFormModal'
 import { ProductsSkeleton } from '../../../components/admin/SkeletonLoader'
 
+
 interface Product {
   id: string
   name: string
@@ -111,14 +112,14 @@ export function ProductsListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Products Management</h1>
-          <p className="text-gray-500 mt-1">{filteredProducts.length} products</p>
+          <h1 className="text-3xl font-bold text-gray-800">Manajemen Produk</h1>
+          <p className="text-gray-500 mt-1">{filteredProducts.length} produk</p>
         </div>
         <button
           onClick={handleAddNew}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition"
         >
-          + Add Product
+          + Tambah Produk
         </button>
       </div>
       
@@ -129,7 +130,7 @@ export function ProductsListPage() {
           <div className="md:col-span-1">
             <input
               type="text"
-              placeholder="🔍 Search products..."
+              placeholder="🔍 Cari produk..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -143,7 +144,7 @@ export function ProductsListPage() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Categories</option>
+              <option value="all">Semua Kategori</option>
               <option value="shampoo">Shampoo</option>
               <option value="conditioner">Conditioner</option>
               <option value="styling">Styling</option>
@@ -159,9 +160,9 @@ export function ProductsListPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="all">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Tidak Aktif</option>
             </select>
           </div>
         </div>
@@ -174,19 +175,19 @@ export function ProductsListPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Image
+                  Gambar
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
+                  Nama
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
+                  Kategori
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  Harga
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
+                  Stok
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -246,7 +247,7 @@ export function ProductsListPage() {
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {product.isActive ? 'Active' : 'Inactive'}
+                      {product.isActive ? 'Aktif' : 'Tidak Aktif'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -254,13 +255,13 @@ export function ProductsListPage() {
                       onClick={() => handleEdit(product)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
-                      ✏️ Edit
+                      ✏️ Ubah
                     </button>
                     <button
                       onClick={() => handleDelete(product)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      🗑️ Delete
+                      🗑️ Hapus
                     </button>
                   </td>
                 </tr>
@@ -271,7 +272,7 @@ export function ProductsListPage() {
         
         {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-gray-500">
-            No products found
+            Tidak ada produk
           </div>
         )}
       </div>
