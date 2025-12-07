@@ -8,11 +8,27 @@ function getFirebaseAdmin() {
   }
 
   // Parse service account dari environment variable
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}')
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  
+  if (!rawServiceAccount) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set')
+  }
+
+  let serviceAccount: admin.ServiceAccount
+  try {
+    serviceAccount = JSON.parse(rawServiceAccount)
+  } catch (parseError) {
+    throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT JSON: ${parseError}`)
+  }
+
+  // Validate required fields
+  if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT is missing required fields (project_id, private_key, or client_email)')
+  }
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    projectId: process.env.FIREBASE_PROJECT_ID || serviceAccount.project_id
+    projectId: serviceAccount.project_id
   })
 }
 
@@ -31,14 +47,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Check if FIREBASE_SERVICE_ACCOUNT is set
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-      console.error('FIREBASE_SERVICE_ACCOUNT environment variable is not set')
-      return res.status(500).json({ 
-        error: 'Server configuration error: FIREBASE_SERVICE_ACCOUNT not configured' 
-      })
-    }
-
     const { userId, title, body, appointmentId, queueNumber } = req.body
 
     if (!userId || !title || !body) {
