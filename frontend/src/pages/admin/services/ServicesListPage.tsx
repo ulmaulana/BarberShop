@@ -5,6 +5,7 @@ import { useToast } from '../../../contexts/ToastContext'
 import { ServiceFormModal } from './ServiceFormModal'
 import { ProductsSkeleton } from '../../../components/admin/SkeletonLoader'
 
+
 interface Service {
   id: string
   name: string
@@ -109,14 +110,14 @@ export function ServicesListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Services Management</h1>
-          <p className="text-gray-500 mt-1">{filteredServices.length} services</p>
+          <h1 className="text-3xl font-bold text-gray-800">Manajemen Layanan</h1>
+          <p className="text-gray-500 mt-1">{filteredServices.length} layanan</p>
         </div>
         <button
           onClick={handleAddNew}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition"
         >
-          + Add Service
+          + Tambah Layanan
         </button>
       </div>
       
@@ -127,7 +128,7 @@ export function ServicesListPage() {
           <div className="md:col-span-1">
             <input
               type="text"
-              placeholder="🔍 Search services..."
+              placeholder="🔍 Cari layanan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -141,11 +142,11 @@ export function ServicesListPage() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Categories</option>
-              <option value="haircut">Haircut</option>
+              <option value="all">Semua Kategori</option>
+              <option value="haircut">Potong Rambut</option>
               <option value="styling">Styling</option>
-              <option value="treatment">Treatment</option>
-              <option value="package">Package</option>
+              <option value="treatment">Perawatan</option>
+              <option value="package">Paket</option>
             </select>
           </div>
           
@@ -156,102 +157,111 @@ export function ServicesListPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="all">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Tidak Aktif</option>
             </select>
           </div>
         </div>
       </div>
       
-      {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredServices.map((service) => (
-          <div key={service.id} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
-            {/* Service Image */}
-            <div className="relative h-48 bg-gray-200">
-              {service.imageUrl ? (
-                <img
-                  src={service.imageUrl}
-                  alt={service.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <span className="text-6xl">✂️</span>
-                </div>
-              )}
-              
-              {/* Status Badge */}
-              <div className="absolute top-3 right-3">
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                  service.isActive
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {service.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            </div>
-            
-            {/* Service Info */}
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{service.name}</h3>
-                  <span className="text-xs text-gray-500 uppercase">{service.category}</span>
-                </div>
-              </div>
-              
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                {service.description}
-              </p>
-              
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    Rp {service.price.toLocaleString('id-ID')}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {service.duration} minutes
-                  </div>
-                </div>
-                
-                {service.totalBookings !== undefined && (
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-700">
-                      {service.totalBookings}
+      {/* Services Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Gambar
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nama
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Kategori
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Harga
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Durasi
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredServices.map((service) => (
+                <tr key={service.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {service.imageUrl ? (
+                      <img
+                        src={service.imageUrl}
+                        alt={service.name}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-2xl">
+                        ✂️
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                    <div className="text-sm text-gray-500 line-clamp-1">{service.description}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
+                      {service.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      Rp {service.price.toLocaleString('id-ID')}
                     </div>
-                    <div className="text-xs text-gray-500">bookings</div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Actions */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(service)}
-                  className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium"
-                >
-                  ✏️ Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(service)}
-                  className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium"
-                >
-                  🗑️ Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {filteredServices.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-lg">
-          No services found
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{service.duration} menit</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      service.isActive
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {service.isActive ? 'Aktif' : 'Tidak Aktif'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleEdit(service)}
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                    >
+                      ✏️ Ubah
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      🗑️ Hapus
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+        
+        {filteredServices.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            Tidak ada layanan
+          </div>
+        )}
+      </div>
       
       {/* Form Modal */}
       {showFormModal && (
