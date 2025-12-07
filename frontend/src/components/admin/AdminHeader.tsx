@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { adminFirestore } from '../../config/firebaseAdmin'
 
+
 interface AdminHeaderProps {
   onToggleSidebar: () => void
 }
@@ -41,7 +42,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
           id: 'pending-payments',
           type: 'payment',
           message: `${pendingCount} pembayaran menunggu verifikasi`,
-          icon: '💳'
+          icon: 'payment'
         })
       }
       
@@ -60,7 +61,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             id: 'low-stock',
             type: 'stock',
             message: `${lowStockProducts.length} produk stok menipis`,
-            icon: '📦'
+            icon: 'stock'
           })
         }
         
@@ -77,7 +78,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               id: 'pending-appointments',
               type: 'appointment',
               message: `${pendingApts} appointment menunggu konfirmasi`,
-              icon: '📅'
+              icon: 'appointment'
             })
           }
           
@@ -100,6 +101,25 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
       showToast('Failed to logout', 'error')
     }
   }
+
+  // Handle notification click - redirect to relevant page
+  const handleNotificationClick = (notif: Notification) => {
+    setShowNotifications(false)
+    
+    switch (notif.type) {
+      case 'payment':
+        navigate('/adminpanel/payments')
+        break
+      case 'stock':
+        navigate('/adminpanel/products')
+        break
+      case 'appointment':
+        navigate('/adminpanel/appointments')
+        break
+      default:
+        break
+    }
+  }
   
   const unreadCount = notifications.length
   
@@ -118,7 +138,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-2xl">💈</span>
+            <span className="text-2xl">✂️</span>
             <h1 className="text-lg font-bold text-gray-800">Sahala Barber</h1>
           </div>
         </div>
@@ -134,7 +154,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
           >
-            🔔
+            <span className="text-xl">🔔</span>
             {unreadCount > 0 && (
               <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {unreadCount}
@@ -150,8 +170,16 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
               <div className="max-h-96 overflow-auto">
                 {notifications.length > 0 ? (
                   notifications.map((notif) => (
-                    <div key={notif.id} className="p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center gap-3">
-                      <span className="text-xl">{notif.icon}</span>
+                    <div 
+                      key={notif.id} 
+                      onClick={() => handleNotificationClick(notif)}
+                      className="p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center gap-3"
+                    >
+                      <span className="text-xl">
+                      {notif.icon === 'payment' && '💳'}
+                      {notif.icon === 'stock' && '📦'}
+                      {notif.icon === 'appointment' && '📅'}
+                    </span>
                       <p className="text-sm text-gray-700">{notif.message}</p>
                     </div>
                   ))
@@ -171,7 +199,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             onClick={() => setShowProfile(!showProfile)}
             className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
           >
-            <span className="text-2xl">👤</span>
+            <span className="text-xl">👤</span>
             <span className="text-sm font-medium text-gray-700">Admin</span>
             <span className="text-gray-400">▼</span>
           </button>
