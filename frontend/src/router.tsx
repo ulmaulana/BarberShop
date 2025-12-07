@@ -33,7 +33,6 @@ import { ServicesListPage as AdminServicesListPage } from './pages/admin/service
 import { AppointmentsListPage as AdminAppointmentsListPage } from './pages/admin/appointments/AppointmentsListPage'
 import { BarbersListPage as AdminBarbersListPage } from './pages/admin/barbers/BarbersListPage'
 import { FinancialDashboardPage } from './pages/admin/financial/FinancialDashboardPage'
-import { ExpensesPage } from './pages/admin/financial/ExpensesPage'
 import { PaymentsListPage } from './pages/admin/payments/PaymentsListPage'
 import { VouchersListPage } from './pages/admin/vouchers/VouchersListPage'
 import { ReportsPage } from './pages/admin/reports/ReportsPage'
@@ -188,7 +187,6 @@ export const appRouter = createBrowserRouter(
         <Route path="appointments" element={<AdminAppointmentsListPage />} />
         <Route path="barbers" element={<AdminBarbersListPage />} />
         <Route path="financial" element={<FinancialDashboardPage />} />
-        <Route path="expenses" element={<ExpensesPage />} />
         <Route path="payments" element={<PaymentsListPage />} />
         <Route path="vouchers" element={<VouchersListPage />} />
         <Route path="reports" element={<ReportsPage />} />
