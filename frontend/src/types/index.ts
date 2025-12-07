@@ -41,6 +41,7 @@ export interface Service extends BaseEntity {
   price: number
   barberIds: EntityId[]
   category: 'styling' | 'cut' | 'color' | 'treatment'
+  isActive?: boolean
 }
 
 export interface Appointment extends BaseEntity {
@@ -72,6 +73,7 @@ export interface Product extends BaseEntity {
   stock: number
   images: string[]
   lowStockThreshold: number
+  isActive?: boolean
 }
 
 export interface OrderItem {
