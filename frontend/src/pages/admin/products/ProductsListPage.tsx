@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { firestore } from '../../../config/firebase'
 import { useToast } from '../../../contexts/ToastContext'
 import { ProductFormModal } from './ProductFormModal'
+import { ProductsSkeleton } from '../../../components/admin/SkeletonLoader'
 
 interface Product {
   id: string
@@ -102,11 +103,7 @@ export function ProductsListPage() {
   })
   
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500">Loading products...</div>
-      </div>
-    )
+    return <ProductsSkeleton />
   }
   
   return (
