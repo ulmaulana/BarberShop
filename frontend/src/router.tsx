@@ -36,6 +36,7 @@ import { FinancialDashboardPage } from './pages/admin/financial/FinancialDashboa
 import { ExpensesPage } from './pages/admin/financial/ExpensesPage'
 import { PaymentsListPage } from './pages/admin/payments/PaymentsListPage'
 import { VouchersListPage } from './pages/admin/vouchers/VouchersListPage'
+import { ReportsPage } from './pages/admin/reports/ReportsPage'
 
 export const appRouter = createBrowserRouter(
   createRoutesFromElements(
@@ -190,6 +191,7 @@ export const appRouter = createBrowserRouter(
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="payments" element={<PaymentsListPage />} />
         <Route path="vouchers" element={<VouchersListPage />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
     </>,
   ),
