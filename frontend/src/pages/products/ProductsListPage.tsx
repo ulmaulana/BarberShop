@@ -34,7 +34,9 @@ export function ProductsListPage() {
   const loadProducts = async () => {
     try {
       const data = await productsService.getAll()
-      setProducts(data as Product[])
+      // Filter only active products for customer view
+      const activeProducts = (data as Product[]).filter(p => p.isActive !== false)
+      setProducts(activeProducts)
     } catch (error) {
       showToast(handleError(error), 'error')
     } finally {
