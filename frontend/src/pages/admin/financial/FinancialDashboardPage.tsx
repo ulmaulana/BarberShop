@@ -6,6 +6,7 @@ import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { FinancialSkeleton } from '../../../components/admin/SkeletonLoader'
 
+
 interface FinancialStats {
   totalIncome: number
   totalExpenses: number
@@ -343,8 +344,8 @@ export function FinancialDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Financial Dashboard</h1>
-          <p className="text-gray-500 mt-1">{getPeriodLabel()} Overview</p>
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard Keuangan</h1>
+          <p className="text-gray-500 mt-1">Ringkasan {getPeriodLabel()}</p>
         </div>
         
         {/* Period Selector */}
@@ -357,7 +358,7 @@ export function FinancialDashboardPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Today
+            Hari Ini
           </button>
           <button
             onClick={() => setPeriod('week')}
@@ -367,7 +368,7 @@ export function FinancialDashboardPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Week
+            Minggu
           </button>
           <button
             onClick={() => setPeriod('month')}
@@ -377,7 +378,7 @@ export function FinancialDashboardPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Month
+            Bulan
           </button>
           <button
             onClick={() => setPeriod('year')}
@@ -387,18 +388,18 @@ export function FinancialDashboardPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-100'
             }`}
           >
-            Year
+            Tahun
           </button>
         </div>
       </div>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Income */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Total Income</p>
+              <p className="text-sm text-gray-500 mb-1">Total Pendapatan</p>
               <p className="text-2xl font-bold text-gray-800">
                 Rp {stats.totalIncome.toLocaleString('id-ID')}
               </p>
@@ -410,30 +411,11 @@ export function FinancialDashboardPage() {
           </p>
         </div>
         
-        {/* Total Expenses */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Total Expenses</p>
-              <p className="text-2xl font-bold text-gray-800">
-                Rp {stats.totalExpenses.toLocaleString('id-ID')}
-              </p>
-            </div>
-            <div className="text-4xl">📉</div>
-          </div>
-          <Link
-            to="/adminpanel/expenses"
-            className="text-sm text-blue-600 hover:text-blue-700"
-          >
-            Manage expenses →
-          </Link>
-        </div>
-        
         {/* Net Profit */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Net Profit</p>
+              <p className="text-sm text-gray-500 mb-1">Laba Bersih</p>
               <p className={`text-2xl font-bold ${
                 stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
@@ -445,7 +427,7 @@ export function FinancialDashboardPage() {
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            {getProfitMargin()}% profit margin
+            {getProfitMargin()}% margin laba
           </p>
         </div>
         
@@ -506,7 +488,7 @@ export function FinancialDashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
-              <p className="text-gray-400">No income data available</p>
+              <p className="text-gray-400">Belum ada data pendapatan</p>
             </div>
           )}
         </div>
@@ -514,7 +496,7 @@ export function FinancialDashboardPage() {
         {/* Income Details */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Income Details
+            Detail Pendapatan
           </h3>
           <div className="space-y-4">
             {/* Product Sales */}
@@ -522,19 +504,19 @@ export function FinancialDashboardPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                  <span className="font-medium text-gray-800">Product Sales</span>
+                  <span className="font-medium text-gray-800">Penjualan Produk</span>
                 </div>
                 <span className="text-lg font-bold text-blue-600">
                   Rp {stats.productIncome.toLocaleString('id-ID')}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>{stats.productCount} orders completed</span>
+                <span>{stats.productCount} pesanan selesai</span>
                 <span>
                   {stats.totalIncome > 0 
                     ? `${((stats.productIncome / stats.totalIncome) * 100).toFixed(1)}%`
                     : '0%'
-                  } of total
+                  } dari total
                 </span>
               </div>
               <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
@@ -554,19 +536,19 @@ export function FinancialDashboardPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-4 bg-green-500 rounded"></div>
-                  <span className="font-medium text-gray-800">Service Income</span>
+                  <span className="font-medium text-gray-800">Pendapatan Layanan</span>
                 </div>
                 <span className="text-lg font-bold text-green-600">
                   Rp {stats.serviceIncome.toLocaleString('id-ID')}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>{stats.serviceCount} appointments completed</span>
+                <span>{stats.serviceCount} janji temu selesai</span>
                 <span>
                   {stats.totalIncome > 0 
                     ? `${((stats.serviceIncome / stats.totalIncome) * 100).toFixed(1)}%`
                     : '0%'
-                  } of total
+                  } dari total
                 </span>
               </div>
               <div className="mt-2 w-full bg-green-200 rounded-full h-2">
@@ -585,7 +567,7 @@ export function FinancialDashboardPage() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-sm text-gray-500">Avg Product Order</p>
+                  <p className="text-sm text-gray-500">Rata-rata Pesanan Produk</p>
                   <p className="text-lg font-bold text-gray-800">
                     Rp {stats.productCount > 0 
                       ? Math.round(stats.productIncome / stats.productCount).toLocaleString('id-ID')
@@ -594,7 +576,7 @@ export function FinancialDashboardPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Avg Service Fee</p>
+                  <p className="text-sm text-gray-500">Rata-rata Biaya Layanan</p>
                   <p className="text-lg font-bold text-gray-800">
                     Rp {stats.serviceCount > 0 
                       ? Math.round(stats.serviceIncome / stats.serviceCount).toLocaleString('id-ID')
@@ -623,7 +605,7 @@ export function FinancialDashboardPage() {
                 onChange={(e) => setSortBy(e.target.value as 'revenue' | 'qty' | 'name')}
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="revenue">Revenue Tertinggi</option>
+                <option value="revenue">Pendapatan Tertinggi</option>
                 <option value="qty">Qty Terbanyak</option>
                 <option value="name">Nama A-Z</option>
               </select>
@@ -667,7 +649,7 @@ export function FinancialDashboardPage() {
                       <th className="text-left py-3 px-4 font-medium text-gray-500">#</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-500">Nama Produk</th>
                       <th className="text-center py-3 px-4 font-medium text-gray-500">Terjual</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-500">Revenue</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-500">Pendapatan</th>
                       <th className="text-center py-3 px-4 font-medium text-gray-500">Status</th>
                     </tr>
                   </thead>
@@ -724,7 +706,7 @@ export function FinancialDashboardPage() {
                       <th className="text-left py-3 px-4 font-medium text-gray-500">#</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-500">Nama Layanan</th>
                       <th className="text-center py-3 px-4 font-medium text-gray-500">Booking</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-500">Revenue</th>
+                      <th className="text-right py-3 px-4 font-medium text-gray-500">Pendapatan</th>
                       <th className="text-center py-3 px-4 font-medium text-gray-500">Status</th>
                     </tr>
                   </thead>
@@ -776,67 +758,47 @@ export function FinancialDashboardPage() {
       </div>
       
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          to="/adminpanel/expenses"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
-        >
-          <div className="text-3xl mb-3">💳</div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Manage Expenses
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Add and track business expenses
-          </p>
-          <span className="text-blue-600 text-sm font-medium">
-            Go to Expenses →
-          </span>
-        </Link>
-        
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           to="/adminpanel/payments"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center gap-4"
         >
-          <div className="text-3xl mb-3">✅</div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Verify Payments
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Review and approve pending payments
-          </p>
-          <span className="text-blue-600 text-sm font-medium">
-            Go to Payments →
-          </span>
+          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl">✅</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-800">Verifikasi Pembayaran</h3>
+            <p className="text-sm text-gray-600">Tinjau dan setujui pembayaran yang menunggu</p>
+            <span className="text-blue-600 text-sm font-medium">Ke Pembayaran →</span>
+          </div>
         </Link>
         
         <Link
           to="/adminpanel/reports"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
+          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center gap-4"
         >
-          <div className="text-3xl mb-3">📊</div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            Generate Reports
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Download financial reports
-          </p>
-          <span className="text-blue-600 text-sm font-medium">
-            Go to Reports →
-          </span>
+          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl">📊</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-800">Buat Laporan</h3>
+            <p className="text-sm text-gray-600">Unduh laporan keuangan</p>
+            <span className="text-blue-600 text-sm font-medium">Ke Laporan →</span>
+          </div>
         </Link>
       </div>
       
       {/* Summary */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Financial Summary - {getPeriodLabel()}
+          Ringkasan Keuangan - {getPeriodLabel()}
         </h3>
         
         <div className="space-y-4">
           {/* Income Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Income</span>
+              <span className="text-sm font-medium text-gray-700">Pendapatan</span>
               <span className="text-sm font-bold text-green-600">
                 Rp {periodData.income.toLocaleString('id-ID')}
               </span>
