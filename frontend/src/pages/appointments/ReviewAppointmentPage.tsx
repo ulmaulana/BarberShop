@@ -34,8 +34,8 @@ export function ReviewAppointmentPage() {
     if (!id) return
     
     try {
-      const data = await appointmentsService.getById(id)
-      setAppointment(data as Appointment)
+      const data = await appointmentsService.getById(id) as Appointment
+      setAppointment(data)
     } catch (error) {
       showToast(handleError(error), 'error')
     } finally {
@@ -50,12 +50,14 @@ export function ReviewAppointmentPage() {
     
     setSubmitting(true)
     try {
+      // Review untuk toko secara keseluruhan, tidak perlu barberId
       await reviewsService.create({
         appointmentId: appointment.id,
         customerId: user.uid,
-        barberId: appointment.barberId,
+        serviceId: appointment.serviceId || null,
         rating,
-        comment: comment.trim() || undefined,
+        comment: comment.trim() || null,
+        createdAt: new Date().toISOString(),
       })
       
       showToast('Review berhasil dikirim!', 'success')
