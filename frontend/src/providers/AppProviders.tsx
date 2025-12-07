@@ -5,6 +5,7 @@ import { appRouter } from '../router'
 import { AuthProvider } from '../contexts/AuthContext'
 import { ToastProvider } from '../contexts/ToastContext'
 import { ErrorBoundary } from '../components/ErrorBoundary'
+import { NotificationPermissionPrompt } from '../components/NotificationPermissionPrompt'
 
 export function AppProviders() {
   const [queryClient] = useState(
@@ -25,6 +26,7 @@ export function AppProviders() {
         <AuthProvider>
           <ToastProvider>
             <RouterProvider router={appRouter} />
+            <NotificationPermissionPrompt />
           </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
