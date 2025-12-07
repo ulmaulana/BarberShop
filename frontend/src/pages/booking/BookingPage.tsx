@@ -310,6 +310,12 @@ export function BookingPage() {
                       if (day === null) {
                         return <div key={`empty-${index}`} />
                       }
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      
+                      const dateToCheck = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day)
+                      const isPast = dateToCheck < today
+                      
                       const isToday = day === new Date().getDate() && 
                                       selectedDate.getMonth() === new Date().getMonth() &&
                                       selectedDate.getFullYear() === new Date().getFullYear()
@@ -319,12 +325,16 @@ export function BookingPage() {
                         <button
                           key={day}
                           onClick={() => {
+                            if (isPast) return
                             const newDate = new Date(selectedDate)
                             newDate.setDate(day)
                             setSelectedDate(newDate)
                           }}
+                          disabled={isPast}
                           className={`p-2 text-center rounded-xl transition-all text-sm ${
-                            isSelected
+                            isPast
+                              ? 'text-slate-300 cursor-not-allowed'
+                              : isSelected
                               ? 'bg-slate-900 text-white font-medium'
                               : isToday
                               ? 'bg-slate-100 text-slate-900 font-medium'
