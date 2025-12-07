@@ -55,11 +55,33 @@ export function PaymentsListPage() {
         ...doc.data()
       })) as Order[]
       
-      // Sort by createdAt descending (terbaru dulu)
+      // Sort: pending_payment first (oldest at top for queue), then paid/completed at bottom
       ordersData.sort((a, b) => {
+        // Priority: pending_payment > paid/completed/cancelled
+        const statusPriority = (status: string) => {
+          if (status === 'pending_payment') return 0
+          return 1 // paid, completed, cancelled go to bottom
+        }
+        
+        const priorityA = statusPriority(a.status)
+        const priorityB = statusPriority(b.status)
+        
+        // If different priority, sort by priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB
+        }
+        
+        // Same priority: sort by time
         const timeA = a.paymentProofUploadedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0
         const timeB = b.paymentProofUploadedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0
-        return timeB - timeA
+        
+        if (priorityA === 0) {
+          // Pending payments: oldest first (queue order)
+          return timeA - timeB
+        } else {
+          // Completed/cancelled: newest first
+          return timeB - timeA
+        }
       })
       
       setOrders(ordersData)
@@ -141,7 +163,7 @@ export function PaymentsListPage() {
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Payment Management</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Manajemen Pembayaran</p>
           <h1 className="text-4xl font-light text-gray-900">Pembayaran</h1>
           <p className="text-sm text-gray-500 mt-2">
             {filteredPayments.length} transaksi ditampilkan
@@ -152,7 +174,7 @@ export function PaymentsListPage() {
           onClick={loadOrders}
           className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
         >
-          Refresh
+          Segarkan
         </button>
       </div>
       
@@ -179,7 +201,7 @@ export function PaymentsListPage() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Pending
+            Menunggu
             <span className="ml-2 text-xs opacity-75">({pendingCount})</span>
           </button>
           <button
@@ -190,7 +212,7 @@ export function PaymentsListPage() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Verified
+            Terverifikasi
             <span className="ml-2 text-xs opacity-75">({paidCount})</span>
           </button>
           <button
@@ -201,7 +223,7 @@ export function PaymentsListPage() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Cancelled
+            Dibatalkan
             <span className="ml-2 text-xs opacity-75">({cancelledCount})</span>
           </button>
         </div>
@@ -218,7 +240,7 @@ export function PaymentsListPage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            All Methods
+            Semua Metode
           </button>
           <button
             onClick={() => setPaymentMethodFilter('transfer')}
@@ -251,25 +273,25 @@ export function PaymentsListPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order
+                  Pesanan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
+                  Pelanggan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Method
+                  Metode
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
+                  Jumlah
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Time
+                  Waktu
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  Aksi
                 </th>
               </tr>
             </thead>
@@ -298,7 +320,7 @@ export function PaymentsListPage() {
                       </div>
                       <div>
                         <p className="text-sm font-mono text-gray-900">{order.orderNumber}</p>
-                        <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
+                        <p className="text-xs text-gray-500">{order.items?.length || 0} item</p>
                       </div>
                     </div>
                   </td>
