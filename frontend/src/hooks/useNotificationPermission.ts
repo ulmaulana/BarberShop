@@ -5,7 +5,8 @@ import {
   requestNotificationPermission,
   saveFCMTokenToUser,
   onForegroundMessage,
-  showLocalNotification
+  showLocalNotification,
+  refreshFCMToken
 } from '../utils/notifications'
 import { useAuth } from '../contexts/AuthContext'
 import type { MessagePayload } from 'firebase/messaging'
@@ -16,6 +17,7 @@ interface UseNotificationPermissionReturn {
   isLoading: boolean
   fcmToken: string | null
   requestPermission: () => Promise<boolean>
+  refreshToken: () => Promise<boolean>
   hasAskedBefore: boolean
   dismissPrompt: () => void
   shouldShowPrompt: boolean
@@ -102,6 +104,49 @@ export function useNotificationPermission(): UseNotificationPermissionReturn {
     setHasAskedBefore(true)
   }, [])
 
+  // Auto-refresh token on mount if permission already granted
+  useEffect(() => {
+    if (!isSupported || permission !== 'granted' || !user?.uid) return
+
+    // Auto refresh token untuk memastikan token cocok dengan SW aktif
+    const autoRefresh = async () => {
+      console.log('Auto-refreshing FCM token...')
+      const result = await refreshFCMToken()
+      if (result.success && result.token) {
+        console.log('Token refreshed successfully')
+        setFcmToken(result.token)
+        await saveFCMTokenToUser(user.uid, result.token)
+      } else {
+        console.error('Failed to refresh token:', result.error)
+      }
+    }
+
+    autoRefresh()
+  }, [isSupported, permission, user?.uid])
+
+  // Refresh token manually
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    if (!isSupported || permission !== 'granted') return false
+
+    setIsLoading(true)
+    try {
+      const result = await refreshFCMToken()
+      if (result.success && result.token) {
+        setFcmToken(result.token)
+        if (user?.uid) {
+          await saveFCMTokenToUser(user.uid, result.token)
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error refreshing token:', error)
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isSupported, permission, user?.uid])
+
   // Re-save token when user logs in
   useEffect(() => {
     if (user?.uid && fcmToken) {
@@ -115,6 +160,7 @@ export function useNotificationPermission(): UseNotificationPermissionReturn {
     isLoading,
     fcmToken,
     requestPermission,
+    refreshToken,
     hasAskedBefore,
     dismissPrompt,
     shouldShowPrompt

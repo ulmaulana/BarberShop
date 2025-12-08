@@ -1,8 +1,12 @@
-import { getMessaging, getToken, onMessage, type MessagePayload } from 'firebase/messaging'
+import { getMessaging, getToken, deleteToken, onMessage, type MessagePayload } from 'firebase/messaging'
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore'
 import { customerFirebaseApp, customerFirestore } from '../config/firebaseCustomer'
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY
+
+if (!VAPID_KEY) {
+  console.warn('[Notifications] VITE_FIREBASE_VAPID_KEY tidak di-set. FCM mungkin tidak berfungsi dengan benar.')
+}
 
 let messaging: ReturnType<typeof getMessaging> | null = null
 
@@ -75,20 +79,28 @@ export async function requestNotificationPermission(): Promise<{
   }
 }
 
-// Register service worker
+// Register service worker (force update jika ada)
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   try {
-    // Cek apakah sudah ada registration
-    const existingReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
-    if (existingReg) {
-      console.log('Service Worker already registered:', existingReg)
-      await navigator.serviceWorker.ready
-      return existingReg
+    // Unregister semua SW lama dengan scope berbeda
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    for (const reg of registrations) {
+      // Skip jika ini adalah SW yang benar
+      if (reg.active?.scriptURL?.includes('firebase-messaging-sw.js')) {
+        continue
+      }
+      console.log('Unregistering old SW:', reg.scope)
+      await reg.unregister()
     }
 
+    // Register/update SW
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-      scope: '/'
+      scope: '/',
+      updateViaCache: 'none' // Force check for updates
     })
+
+    // Force update jika ada
+    await registration.update()
 
     // Tunggu service worker aktif
     await navigator.serviceWorker.ready
@@ -167,4 +179,55 @@ export function showLocalNotification(title: string, options?: NotificationOptio
     badge: '/icons/icon-192.svg',
     ...options
   })
+}
+
+// Force refresh FCM token (delete old, get new)
+export async function refreshFCMToken(): Promise<{
+  success: boolean
+  token?: string
+  error?: string
+}> {
+  if (!isNotificationSupported()) {
+    return { success: false, error: 'Notifikasi tidak didukung' }
+  }
+
+  try {
+    const messagingInstance = getMessagingInstance()
+    if (messagingInstance) {
+      // Delete old token
+      try {
+        await deleteToken(messagingInstance)
+        console.log('Old FCM token deleted')
+      } catch (e) {
+        console.log('No old token to delete or error:', e)
+      }
+    }
+
+    // Unregister all service workers first
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    for (const reg of registrations) {
+      console.log('Unregistering SW:', reg.scope)
+      await reg.unregister()
+    }
+
+    // Clear messaging instance to force re-init
+    messaging = null
+
+    // Re-register SW
+    const registration = await registerServiceWorker()
+    if (!registration) {
+      return { success: false, error: 'Gagal mendaftarkan service worker' }
+    }
+
+    // Get new token
+    const token = await getFCMToken(registration)
+    if (!token) {
+      return { success: false, error: 'Gagal mendapatkan token baru' }
+    }
+
+    return { success: true, token }
+  } catch (error) {
+    console.error('Error refreshing FCM token:', error)
+    return { success: false, error: String(error) }
+  }
 }
