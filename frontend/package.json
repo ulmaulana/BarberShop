@@ -13,7 +13,6 @@
     "test": "vitest"
   },
   "devDependencies": {
-    "dotenv": "^16.5.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -24,6 +23,7 @@
     "@vercel/node": "^5.5.6",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.22",
+    "dotenv": "^16.5.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -43,13 +43,18 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.9",
     "axios": "^1.7.7",
+    "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "firebase": "^11.0.2",
     "firebase-admin": "^13.6.0",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.556.0",
     "openai": "^6.9.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.9.6",
-    "recharts": "^3.4.1"
+    "recharts": "^3.4.1",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
   }
 }
