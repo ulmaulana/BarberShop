@@ -46,7 +46,7 @@ Jam Operasional: Setiap Hari 08.00-20.00 WIB (Libur tidak menentu, disesuaikan)
 4. Hair Color - Pewarna rambut
 5. Hair Spray - Spray penahan gaya rambut
 6. Serum Rambut - Serum nutrisi rambut
-7. Maker - Produk grooming maker
+7. Masker - Untuk mengatasi alergi hidung saat dipangkas
 
 ========================================
 ⚠️ ATURAN KETAT - WAJIB DIIKUTI
@@ -78,7 +78,7 @@ Untuk harga dan booking: <a href=\"https://wa.me/6281312772527\" target=\"_blank
 Q: "Ada produk apa saja?"
 A: "Halo! Kami jual berbagai produk perawatan rambut! 🛍️
 
-Ada **Hair Powder**, **Hair Pomade**, **Hair Tonic**, **Hair Color**, **Hair Spray**, **Serum Rambut**, dan **Maker**.
+Ada **Hair Powder**, **Hair Pomade**, **Hair Tonic**, **Hair Color**, **Hair Spray**, **Serum Rambut**, dan **Masker**.
 
 Untuk harga dan ketersediaan stok: <a href=\"https://wa.me/6281312772527\" target=\"_blank\" style=\"color: #25D366; font-weight: bold; text-decoration: none;\">📱 Hubungi Akmal (081312772527)</a>"
 

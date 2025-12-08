@@ -197,7 +197,7 @@ Jam: Setiap Hari 08.00-20.00 WIB (Libur tidak menentu)
 4. Hair Color
 5. Hair Spray
 6. Serum Rambut
-7. Maker
+7. Masker
 
 RULES:
 - Jawab dalam Bahasa Indonesia, friendly tapi profesional

@@ -34,7 +34,7 @@ interface Order {
   createdAt: string
 }
 
-type TabType = 'all' | 'pending_payment' | 'confirmed' | 'completed'
+type TabType = 'all' | 'pending' | 'processing' | 'completed'
 
 export function MyOrdersPage() {
   const { user } = useAuth()
@@ -44,6 +44,23 @@ export function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('all')
+
+  // Map status to tab category
+  const getStatusCategory = (status: string): TabType => {
+    // Pending: menunggu pembayaran atau verifikasi
+    if (['pending_payment', 'pending_verification', 'payment_rejected'].includes(status)) {
+      return 'pending'
+    }
+    // Processing: dikonfirmasi, diproses, siap diambil
+    if (['confirmed', 'processing', 'ready_for_pickup'].includes(status)) {
+      return 'processing'
+    }
+    // Completed
+    if (['completed', 'paid'].includes(status)) {
+      return 'completed'
+    }
+    return 'all'
+  }
 
   // GUARD: Redirect admin to admin panel
   useEffect(() => {
@@ -118,14 +135,18 @@ export function MyOrdersPage() {
 
   const filteredOrders = orders.filter((order) => {
     if (activeTab === 'all') return true
-    return order.status === activeTab
+    return getStatusCategory(order.status) === activeTab
   })
 
   const getStatusBadge = (status: string) => {
     const styles = {
       pending_payment: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Menunggu Pembayaran' },
+      pending_verification: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Verifikasi Pembayaran' },
       confirmed: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Dikonfirmasi' },
+      processing: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Diproses' },
+      ready_for_pickup: { bg: 'bg-cyan-100', text: 'text-cyan-800', label: 'Siap Diambil' },
       completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Selesai' },
+      paid: { bg: 'bg-green-100', text: 'text-green-800', label: 'Lunas' },
       payment_rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Pembayaran Ditolak' },
     }
     
@@ -176,8 +197,8 @@ export function MyOrdersPage() {
         <div className="flex gap-1 sm:gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
           {[
             { key: 'all', label: 'Semua Pesanan' },
-            { key: 'pending_payment', label: 'Menunggu' },
-            { key: 'confirmed', label: 'Dikonfirmasi' },
+            { key: 'pending', label: 'Menunggu' },
+            { key: 'processing', label: 'Diproses' },
             { key: 'completed', label: 'Selesai' }
           ].map((tab) => (
             <button
@@ -199,12 +220,12 @@ export function MyOrdersPage() {
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {activeTab === 'all' ? 'Tidak ada pesanan' : `Tidak ada pesanan ${activeTab === 'pending_payment' ? 'menunggu' : activeTab === 'confirmed' ? 'dikonfirmasi' : 'selesai'}`}
+              {activeTab === 'all' ? 'Tidak ada pesanan' : `Tidak ada pesanan ${activeTab === 'pending' ? 'menunggu' : activeTab === 'processing' ? 'diproses' : 'selesai'}`}
             </h3>
             <p className="text-gray-600 mb-6">
               {activeTab === 'all' 
                 ? "Anda belum pernah melakukan pemesanan. Mulai belanja sekarang!"
-                : `Anda tidak memiliki pesanan ${activeTab === 'pending_payment' ? 'yang menunggu pembayaran' : activeTab === 'confirmed' ? 'yang dikonfirmasi' : 'yang selesai'}.`
+                : `Anda tidak memiliki pesanan ${activeTab === 'pending' ? 'yang menunggu pembayaran/verifikasi' : activeTab === 'processing' ? 'yang sedang diproses' : 'yang selesai'}.`
               }
             </p>
             <Link
