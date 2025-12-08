@@ -4,14 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "generate-sw": "node scripts/generate-sw.js",
+    "dev": "npm run generate-sw && vite",
+    "build": "npm run generate-sw && tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
     "format": "prettier --write .",
     "test": "vitest"
   },
   "devDependencies": {
+    "dotenv": "^16.5.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

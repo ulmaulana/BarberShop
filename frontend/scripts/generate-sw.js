@@ -1,4 +1,24 @@
-// Firebase Messaging + PWA Service Worker - Auto-generated
+import { readFileSync, writeFileSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { config } from 'dotenv'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Load .env file jika ada (untuk local dev)
+config({ path: join(__dirname, '../.env') })
+config({ path: join(__dirname, '../.env.local') })
+
+const firebaseConfig = {
+  apiKey: process.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+  appId: process.env.VITE_FIREBASE_APP_ID || '',
+}
+
+const swContent = `// Firebase Messaging + PWA Service Worker - Auto-generated
 // DO NOT EDIT DIRECTLY - edit scripts/generate-sw.js instead
 
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
@@ -7,14 +27,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-comp
 // ==================== FIREBASE MESSAGING ====================
 
 // Firebase config (injected at build time)
-const firebaseConfig = {
-  "apiKey": "AIzaSyCcMd6rqhKIkJRTFodF34C3FNpNC27mdpY",
-  "authDomain": "sahala-barber.firebaseapp.com",
-  "projectId": "sahala-barber",
-  "storageBucket": "sahala-barber.firebasestorage.app",
-  "messagingSenderId": "699538572754",
-  "appId": "1:699538572754:web:029dd108303eeac61a740b"
-}
+const firebaseConfig = ${JSON.stringify(firebaseConfig, null, 2)}
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig)
@@ -118,7 +131,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Images and fonts - cache first
-  if (url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|woff|woff2|ico)$/)) {
+  if (url.pathname.match(/\\.(png|jpg|jpeg|svg|gif|webp|woff|woff2|ico)$/)) {
     event.respondWith(
       caches.open(ASSETS_CACHE).then((cache) => {
         return cache.match(event.request).then((cached) => {
@@ -155,3 +168,8 @@ self.addEventListener('fetch', (event) => {
       })
   )
 })
+`
+
+const outputPath = join(__dirname, '../public/firebase-messaging-sw.js')
+writeFileSync(outputPath, swContent)
+console.log('Generated firebase-messaging-sw.js with Firebase config')

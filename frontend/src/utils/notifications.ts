@@ -78,14 +78,12 @@ export async function requestNotificationPermission(): Promise<{
 // Register service worker
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   try {
-    // Kirim config ke service worker
-    const config = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    // Cek apakah sudah ada registration
+    const existingReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+    if (existingReg) {
+      console.log('Service Worker already registered:', existingReg)
+      await navigator.serviceWorker.ready
+      return existingReg
     }
 
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
@@ -94,14 +92,6 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
 
     // Tunggu service worker aktif
     await navigator.serviceWorker.ready
-
-    // Kirim config ke service worker
-    if (registration.active) {
-      registration.active.postMessage({
-        type: 'INIT_FIREBASE',
-        config
-      })
-    }
 
     console.log('Service Worker registered:', registration)
     return registration
