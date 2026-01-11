@@ -16,7 +16,7 @@ export function VerifyEmailPage() {
 
   const handleResend = async () => {
     if (!customerAuth.currentUser) return
-    
+
     setLoading(true)
     try {
       await sendEmailVerification(customerAuth.currentUser)
@@ -51,7 +51,7 @@ export function VerifyEmailPage() {
 
         {/* Title */}
         <h1 className="mb-3 text-3xl font-bold text-gray-900">Verifikasi Email Anda</h1>
-        
+
         {/* Main Message */}
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-gray-700 leading-relaxed">
@@ -81,19 +81,19 @@ export function VerifyEmailPage() {
           <Button onClick={handleCheckVerification} className="w-full bg-blue-600 hover:bg-blue-700 text-base py-3">
             ✓ Saya Sudah Verifikasi
           </Button>
-          
-          <Button 
-            onClick={handleResend} 
-            variant="secondary" 
+
+          <Button
+            onClick={handleResend}
+            variant="secondary"
             className="w-full text-base py-3"
             isLoading={loading}
           >
             📧 Kirim Ulang Email Verifikasi
           </Button>
 
-          <Button 
-            onClick={logout} 
-            variant="ghost" 
+          <Button
+            onClick={logout}
+            variant="ghost"
             className="w-full text-base py-3"
           >
             ← Logout
@@ -103,7 +103,7 @@ export function VerifyEmailPage() {
         {/* Footer Note */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500">
-            💡 <strong>Tips:</strong> Email verifikasi biasanya tiba dalam 1-2 menit. 
+            💡 <strong>Tips:</strong> Email verifikasi biasanya tiba dalam 1-2 menit.
             Jika tidak menerima, periksa folder spam atau klik "Kirim Ulang Email Verifikasi".
           </p>
         </div>

@@ -1,6 +1,6 @@
 # Sahala Barber Management System
 
-Sistem manajemen barbershop modern dan lengkap yang dibangun dengan React, Firebase, dan Cloudinary.
+Sahala Barber adalah solusi manajemen barbershop berbasis cloud yang dirancang untuk mengoptimalkan operasional bisnis secara menyeluruh. Aplikasi ini menyediakan platform terintegrasi yang menghubungkan pelanggan dengan layanan barbershop melalui sistem booking online, e-commerce produk perawatan, serta dashboard analitik untuk pengelolaan bisnis. Dibangun dengan arsitektur modern menggunakan React dan TypeScript di sisi frontend, serta Firebase sebagai backend serverless untuk autentikasi, database real-time, dan cloud functions. Integrasi Cloudinary memastikan pengelolaan dan pengiriman gambar yang optimal untuk pengalaman pengguna yang cepat dan responsif.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/)

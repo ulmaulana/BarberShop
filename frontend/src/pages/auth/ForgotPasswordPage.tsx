@@ -11,7 +11,7 @@ import { validateEmail, validateRequired } from '../../utils/validation'
 export function ForgotPasswordPage() {
   const { resetPassword } = useAuth()
   const { showToast } = useToast()
-  
+
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -32,9 +32,9 @@ export function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validate()) return
-    
+
     setLoading(true)
     try {
       await resetPassword(email)

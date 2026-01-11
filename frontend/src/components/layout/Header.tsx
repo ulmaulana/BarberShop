@@ -82,8 +82,8 @@ export function Header() {
           <Link
             to="/"
             className={`px-6 py-2.5 rounded-full font-medium transition-all ${location.pathname === '/'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white'
               }`}
           >
             Home
@@ -91,8 +91,8 @@ export function Header() {
           <Link
             to="/services"
             className={`px-6 py-2.5 rounded-full font-medium transition-all ${location.pathname === '/services'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white'
               }`}
           >
             Layanan
@@ -100,8 +100,8 @@ export function Header() {
           <Link
             to="/products"
             className={`px-6 py-2.5 rounded-full font-medium transition-all ${location.pathname === '/products'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white'
               }`}
           >
             Produk
@@ -109,8 +109,8 @@ export function Header() {
           <Link
             to="/booking"
             className={`px-6 py-2.5 rounded-full font-medium transition-all ${location.pathname === '/booking'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white'
               }`}
           >
             Booking
@@ -225,8 +225,8 @@ export function Header() {
               to="/"
               onClick={() => setShowMobileMenu(false)}
               className={`px-6 py-3 font-medium transition-all border-l-4 ${location.pathname === '/'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-transparent text-gray-700 hover:bg-gray-50'
                 }`}
             >
               Home
@@ -235,8 +235,8 @@ export function Header() {
               to="/services"
               onClick={() => setShowMobileMenu(false)}
               className={`px-6 py-3 font-medium transition-all border-l-4 ${location.pathname === '/services'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-transparent text-gray-700 hover:bg-gray-50'
                 }`}
             >
               Layanan
@@ -245,8 +245,8 @@ export function Header() {
               to="/products"
               onClick={() => setShowMobileMenu(false)}
               className={`px-6 py-3 font-medium transition-all border-l-4 ${location.pathname === '/products'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-transparent text-gray-700 hover:bg-gray-50'
                 }`}
             >
               Produk
@@ -255,8 +255,8 @@ export function Header() {
               to="/booking"
               onClick={() => setShowMobileMenu(false)}
               className={`px-6 py-3 font-medium transition-all border-l-4 ${location.pathname === '/booking'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-transparent text-gray-700 hover:bg-gray-50'
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-transparent text-gray-700 hover:bg-gray-50'
                 }`}
             >
               Booking

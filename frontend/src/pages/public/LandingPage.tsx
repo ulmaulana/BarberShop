@@ -85,7 +85,7 @@ export function LandingPage() {
               <span className="block font-semibold">Best Look</span>
             </h1>
             <p className="text-lg text-slate-600 mb-10 leading-relaxed max-w-2xl">
-              Layanan potong rambut profesional dengan pengalaman booking yang seamless. 
+              Layanan potong rambut profesional dengan pengalaman booking yang seamless.
               Tingkatkan kepercayaan diri Anda dengan sentuhan ahli.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -120,7 +120,7 @@ export function LandingPage() {
               to="/services"
               className="text-slate-900 hover:text-slate-700 font-medium flex items-center gap-2 group"
             >
-              View All 
+              View All
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
@@ -199,7 +199,7 @@ export function LandingPage() {
               to="/products"
               className="text-slate-900 hover:text-slate-700 font-medium flex items-center gap-2 group"
             >
-              Shop All 
+              Shop All
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
@@ -238,7 +238,7 @@ export function LandingPage() {
                         Rp {product.price.toLocaleString('id-ID')}
                       </span>
                     </div>
-                    
+
                     {/* Rating */}
                     {product.rating && product.reviewCount ? (
                       <div className="flex items-center gap-1.5 mb-4 text-sm text-slate-600">
@@ -342,7 +342,7 @@ export function LandingPage() {
             to="/booking"
             className="inline-flex items-center justify-center px-8 py-3.5 text-base font-medium text-slate-900 bg-white hover:bg-slate-100 rounded-2xl transition-all group"
           >
-            Book Appointment Now 
+            Book Appointment Now
             <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
@@ -357,7 +357,7 @@ export function LandingPage() {
                 <span className="text-2xl font-light text-white">Sahala Barber</span>
               </div>
               <p className="text-slate-500 leading-relaxed max-w-md">
-                Professional barber service dengan layanan booking online, 
+                Professional barber service dengan layanan booking online,
                 produk berkualitas, dan pengalaman terbaik untuk Anda.
               </p>
             </div>

@@ -13,7 +13,7 @@ export function LoginPage() {
   const [searchParams] = useSearchParams()
   const { user, login } = useAuth()
   const { showToast } = useToast()
-  
+
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -27,7 +27,7 @@ export function LoginPage() {
         navigate('/adminpanel/dashboard', { replace: true })
         return
       }
-      
+
       // Regular customer redirect
       const redirectTo = searchParams.get('redirect') || '/'
       navigate(redirectTo, { replace: true })
@@ -36,31 +36,31 @@ export function LoginPage() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!validateRequired(formData.email)) {
       newErrors.email = 'Email wajib diisi'
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Format email tidak valid'
     }
-    
+
     if (!validateRequired(formData.password)) {
       newErrors.password = 'Password wajib diisi'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validate()) return
-    
+
     setLoading(true)
     try {
       await login(formData.email, formData.password)
       showToast('Login berhasil', 'success')
-      
+
       // Auth state will update via useEffect
       // Role-based redirect handled there
     } catch (error) {

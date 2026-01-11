@@ -5,6 +5,18 @@ import { Link } from 'react-router-dom'
 import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { FinancialSkeleton } from '../../../components/admin/SkeletonLoader'
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  CreditCard,
+  Package,
+  Scissors,
+  ArrowRight,
+  FileText,
+  Target
+} from 'lucide-react'
 
 
 interface FinancialStats {
@@ -65,7 +77,7 @@ export function FinancialDashboardPage() {
   const [bottomServices, setBottomServices] = useState<ServiceStat[]>([])
   const [sortBy, setSortBy] = useState<'revenue' | 'qty' | 'name'>('revenue')
   const [activeTab, setActiveTab] = useState<'product' | 'service'>('product')
-  
+
   useEffect(() => {
     // Tunggu auth selesai loading dan user sudah login
     if (authLoading) {
@@ -80,11 +92,11 @@ export function FinancialDashboardPage() {
     console.log('[Financial] useEffect triggered, user:', user.email, 'period:', period)
     loadFinancialData()
   }, [period, authLoading, user])
-  
+
   const getDateRange = () => {
     const now = new Date()
     let startDate = new Date()
-    
+
     switch (period) {
       case 'today':
         startDate.setHours(0, 0, 0, 0)
@@ -99,10 +111,10 @@ export function FinancialDashboardPage() {
         startDate.setFullYear(now.getFullYear() - 1)
         break
     }
-    
+
     return { startDate, endDate: now }
   }
-  
+
   const parseDate = (dateValue: unknown): Date | null => {
     if (!dateValue) return null
     // Firestore Timestamp
@@ -115,20 +127,20 @@ export function FinancialDashboardPage() {
     }
     return null
   }
-  
+
   const loadFinancialData = async () => {
     try {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
-      
+
       console.log(`[Financial] Loading data for period: ${period}`)
-      
+
       // Pre-fetch all services and products for caching (major optimization)
       const [servicesSnapshot, productsSnapshot] = await Promise.all([
         getDocs(collection(adminFirestore, 'services')),
         getDocs(collection(adminFirestore, 'products'))
       ])
-      
+
       const servicesCache: Record<string, { name: string; price: number }> = {}
       servicesSnapshot.docs.forEach(serviceDoc => {
         servicesCache[serviceDoc.id] = {
@@ -136,7 +148,7 @@ export function FinancialDashboardPage() {
           price: serviceDoc.data().price || 0
         }
       })
-      
+
       const productsCache: Record<string, { name: string; price: number }> = {}
       productsSnapshot.docs.forEach(productDoc => {
         productsCache[productDoc.id] = {
@@ -144,27 +156,27 @@ export function FinancialDashboardPage() {
           price: productDoc.data().price || 0
         }
       })
-      
+
       console.log(`[Financial] Cached ${Object.keys(servicesCache).length} services, ${Object.keys(productsCache).length} products`)
-      
+
       // Load all data in parallel
       const [ordersSnapshot, appointmentsSnapshot, expensesSnapshot] = await Promise.all([
         getDocs(collection(adminFirestore, 'orders')),
         getDocs(collection(adminFirestore, 'appointments')),
         getDocs(collection(adminFirestore, 'expenses'))
       ])
-      
+
       let totalIncome = 0
       let ordersCount = 0
       let productIncome = 0
       let appointmentsIncome = 0
       let appointmentsCount = 0
-      
+
       // Process orders
       ordersSnapshot.docs.forEach(orderDoc => {
         const data = orderDoc.data()
         const orderDate = parseDate(data.createdAt)
-        
+
         if ((data.status === 'completed' || data.status === 'paid') && orderDate) {
           if (orderDate >= startDate && orderDate <= endDate) {
             const amount = data.totalAmount || 0
@@ -174,13 +186,13 @@ export function FinancialDashboardPage() {
           }
         }
       })
-      
+
       // Process appointments using cache
       appointmentsSnapshot.docs.forEach(appointmentDoc => {
         const data = appointmentDoc.data()
         const appointmentDateStr = data.date as string
         const appointmentDate = appointmentDateStr ? new Date(appointmentDateStr + 'T00:00:00') : null
-        
+
         if (data.status === 'completed' && appointmentDate) {
           if (appointmentDate >= startDate && appointmentDate <= endDate) {
             if (data.serviceId && servicesCache[data.serviceId]) {
@@ -190,32 +202,32 @@ export function FinancialDashboardPage() {
           }
         }
       })
-      
+
       console.log(`[Financial] Income: Orders Rp ${productIncome.toLocaleString('id-ID')}, Services Rp ${appointmentsIncome.toLocaleString('id-ID')}`)
-      
+
       // Total income = orders + appointments
       totalIncome += appointmentsIncome
       const totalTransactions = ordersCount + appointmentsCount
-      
+
       // Process expenses (already fetched in parallel)
       let totalExpenses = 0
       expensesSnapshot.docs.forEach(expDoc => {
         const data = expDoc.data()
         const expenseDate = parseDate(data.date)
-        
+
         if (expenseDate && expenseDate >= startDate && expenseDate <= endDate) {
           totalExpenses += data.amount || 0
         }
       })
-      
+
       console.log(`[Financial] Expenses: Rp ${totalExpenses.toLocaleString('id-ID')}`)
-      
+
       const netProfit = totalIncome - totalExpenses
       const avgOrderValue = totalTransactions > 0 ? totalIncome / totalTransactions : 0
-      
+
       console.log(`[Financial] Summary - Income: Rp ${totalIncome.toLocaleString('id-ID')}, Expenses: Rp ${totalExpenses.toLocaleString('id-ID')}, Profit: Rp ${netProfit.toLocaleString('id-ID')}`)
       console.log(`[Financial] Total transactions: ${totalTransactions} (${ordersCount} orders + ${appointmentsCount} appointments)`)
-      
+
       setStats({
         totalIncome,
         totalExpenses,
@@ -227,16 +239,16 @@ export function FinancialDashboardPage() {
         productCount: ordersCount,
         serviceCount: appointmentsCount,
       })
-      
+
       setPeriodData({
         income: totalIncome,
         expenses: totalExpenses,
         profit: netProfit,
       })
-      
+
       // Calculate All Products - initialize from cache first (includes 0 sold)
       const productStats: Record<string, ProductStat> = {}
-      
+
       // Initialize all products from cache
       Object.entries(productsCache).forEach(([id, cached]) => {
         productStats[id] = {
@@ -246,18 +258,18 @@ export function FinancialDashboardPage() {
           revenue: 0,
         }
       })
-      
+
       // Count sales from orders
       ordersSnapshot.docs.forEach(orderDoc => {
         const data = orderDoc.data()
         const orderDate = parseDate(data.createdAt)
-        
+
         if ((data.status === 'completed' || data.status === 'paid') && orderDate) {
           if (orderDate >= startDate && orderDate <= endDate) {
             data.items?.forEach((item: { productId?: string; id?: string; productName?: string; name?: string; quantity?: number; price?: number }) => {
               const productId = item.productId || item.id || 'unknown'
               const productName = item.productName || item.name || 'Unknown Product'
-              
+
               if (!productStats[productId]) {
                 productStats[productId] = {
                   id: productId,
@@ -272,15 +284,15 @@ export function FinancialDashboardPage() {
           }
         }
       })
-      
+
       const sortedProducts = Object.values(productStats).sort((a, b) => b.revenue - a.revenue)
       // Masukkan semua produk
       setTopProducts(sortedProducts)
       setBottomProducts([])
-      
+
       // Calculate Top/Bottom Services using cache
       const serviceStats: Record<string, ServiceStat> = {}
-      
+
       // Initialize all services from cache (includes those with 0 bookings)
       Object.entries(servicesCache).forEach(([id, cached]) => {
         serviceStats[id] = {
@@ -290,13 +302,13 @@ export function FinancialDashboardPage() {
           revenue: 0,
         }
       })
-      
+
       // Count bookings from appointments using cache
       appointmentsSnapshot.docs.forEach(appointmentDoc => {
         const data = appointmentDoc.data()
         const appointmentDateStr = data.date as string
         const appointmentDate = appointmentDateStr ? new Date(appointmentDateStr + 'T00:00:00') : null
-        
+
         if (data.status === 'completed' && appointmentDate) {
           if (appointmentDate >= startDate && appointmentDate <= endDate) {
             if (data.serviceId && serviceStats[data.serviceId] && servicesCache[data.serviceId]) {
@@ -306,12 +318,12 @@ export function FinancialDashboardPage() {
           }
         }
       })
-      
+
       const sortedServices = Object.values(serviceStats).sort((a, b) => b.revenue - a.revenue)
       // Masukkan semua layanan, tidak dibatasi top 5 / bottom 5
       setTopServices(sortedServices)
       setBottomServices([])
-      
+
     } catch (error) {
       console.error('[Financial] ERROR:', error)
       alert('Error loading financial data: ' + (error as Error).message)
@@ -319,12 +331,12 @@ export function FinancialDashboardPage() {
       setLoading(false)
     }
   }
-  
+
   const getProfitMargin = () => {
     if (stats.totalIncome === 0) return 0
     return ((stats.netProfit / stats.totalIncome) * 100).toFixed(1)
   }
-  
+
   const getPeriodLabel = () => {
     const labels = {
       today: "Today's",
@@ -334,11 +346,11 @@ export function FinancialDashboardPage() {
     }
     return labels[period]
   }
-  
+
   if (loading) {
     return <FinancialSkeleton />
   }
-  
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -347,107 +359,111 @@ export function FinancialDashboardPage() {
           <h1 className="text-3xl font-bold text-gray-800">Dashboard Keuangan</h1>
           <p className="text-gray-500 mt-1">Ringkasan {getPeriodLabel()}</p>
         </div>
-        
+
         {/* Period Selector */}
         <div className="flex gap-2">
           <button
             onClick={() => setPeriod('today')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              period === 'today'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition ${period === 'today'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
           >
             Hari Ini
           </button>
           <button
             onClick={() => setPeriod('week')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              period === 'week'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition ${period === 'week'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
           >
             Minggu
           </button>
           <button
             onClick={() => setPeriod('month')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              period === 'month'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition ${period === 'month'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
           >
             Bulan
           </button>
           <button
             onClick={() => setPeriod('year')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              period === 'year'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition ${period === 'year'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
           >
             Tahun
           </button>
         </div>
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Income */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Total Pendapatan</p>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-2xl font-bold text-gray-900">
                 Rp {stats.totalIncome.toLocaleString('id-ID')}
               </p>
             </div>
-            <div className="text-4xl">💰</div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <DollarSign className="w-6 h-6 text-blue-600" />
+            </div>
           </div>
-          <p className="text-sm text-gray-600">
-            {stats.ordersCount} transaksi selesai
-          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <ShoppingCart className="w-4 h-4" />
+            <span>{stats.ordersCount} transaksi selesai</span>
+          </div>
         </div>
-        
+
         {/* Net Profit */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Laba Bersih</p>
-              <p className={`text-2xl font-bold ${
-                stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <p className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                 Rp {stats.netProfit.toLocaleString('id-ID')}
               </p>
             </div>
-            <div className="text-4xl">
-              {stats.netProfit >= 0 ? '📈' : '📉'}
+            <div className={`p-3 rounded-lg ${stats.netProfit >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+              {stats.netProfit >= 0 ? (
+                <TrendingUp className={`w-6 h-6 ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+              ) : (
+                <TrendingDown className="w-6 h-6 text-red-600" />
+              )}
             </div>
           </div>
           <p className="text-sm text-gray-600">
             {getProfitMargin()}% margin laba
           </p>
         </div>
-        
+
         {/* Average Transaction */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-sm text-gray-500 mb-1">Rata-rata Transaksi</p>
-              <p className="text-2xl font-bold text-gray-800">
+              <p className="text-2xl font-bold text-gray-900">
                 Rp {Math.round(stats.avgOrderValue).toLocaleString('id-ID')}
               </p>
             </div>
-            <div className="text-4xl">🎯</div>
+            <div className="p-3 bg-indigo-50 rounded-lg">
+              <Target className="w-6 h-6 text-indigo-600" />
+            </div>
           </div>
           <p className="text-sm text-gray-600">
             Per transaksi selesai
           </p>
         </div>
       </div>
-      
+
       {/* Income Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pie Chart */}
@@ -475,7 +491,7 @@ export function FinancialDashboardPage() {
                   <Cell fill="#3B82F6" />
                   <Cell fill="#10B981" />
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => `Rp ${value.toLocaleString('id-ID')}`}
                   contentStyle={{
                     backgroundColor: '#fff',
@@ -492,7 +508,7 @@ export function FinancialDashboardPage() {
             </div>
           )}
         </div>
-        
+
         {/* Income Details */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
@@ -513,7 +529,7 @@ export function FinancialDashboardPage() {
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <span>{stats.productCount} pesanan selesai</span>
                 <span>
-                  {stats.totalIncome > 0 
+                  {stats.totalIncome > 0
                     ? `${((stats.productIncome / stats.totalIncome) * 100).toFixed(1)}%`
                     : '0%'
                   } dari total
@@ -530,7 +546,7 @@ export function FinancialDashboardPage() {
                 />
               </div>
             </div>
-            
+
             {/* Service Income */}
             <div className="p-4 bg-green-50 rounded-lg border border-green-100">
               <div className="flex items-center justify-between mb-2">
@@ -545,7 +561,7 @@ export function FinancialDashboardPage() {
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <span>{stats.serviceCount} janji temu selesai</span>
                 <span>
-                  {stats.totalIncome > 0 
+                  {stats.totalIncome > 0
                     ? `${((stats.serviceIncome / stats.totalIncome) * 100).toFixed(1)}%`
                     : '0%'
                   } dari total
@@ -562,14 +578,14 @@ export function FinancialDashboardPage() {
                 />
               </div>
             </div>
-            
+
             {/* Average per transaction */}
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
                   <p className="text-sm text-gray-500">Rata-rata Pesanan Produk</p>
                   <p className="text-lg font-bold text-gray-800">
-                    Rp {stats.productCount > 0 
+                    Rp {stats.productCount > 0
                       ? Math.round(stats.productIncome / stats.productCount).toLocaleString('id-ID')
                       : '0'
                     }
@@ -578,7 +594,7 @@ export function FinancialDashboardPage() {
                 <div>
                   <p className="text-sm text-gray-500">Rata-rata Biaya Layanan</p>
                   <p className="text-lg font-bold text-gray-800">
-                    Rp {stats.serviceCount > 0 
+                    Rp {stats.serviceCount > 0
                       ? Math.round(stats.serviceIncome / stats.serviceCount).toLocaleString('id-ID')
                       : '0'
                     }
@@ -589,13 +605,13 @@ export function FinancialDashboardPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Products & Services Performance - Combined with Tabs */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         {/* Header with Tabs and Sort */}
-        <div className="border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 pt-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 sm:mb-0">
+        <div className="border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 pt-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-3 sm:mb-0">
               Performa Penjualan
             </h3>
             <div className="flex items-center gap-2 mb-3 sm:mb-0">
@@ -603,7 +619,7 @@ export function FinancialDashboardPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'revenue' | 'qty' | 'name')}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
               >
                 <option value="revenue">Pendapatan Tertinggi</option>
                 <option value="qty">Qty Terbanyak</option>
@@ -611,32 +627,32 @@ export function FinancialDashboardPage() {
               </select>
             </div>
           </div>
-          
+
           {/* Tab Navigation */}
-          <div className="flex px-6">
+          <div className="flex px-6 mt-4 gap-6">
             <button
               onClick={() => setActiveTab('product')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'product'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'product'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
             >
-              📦 Produk
+              <Package className="w-4 h-4" />
+              Produk
             </button>
             <button
               onClick={() => setActiveTab('service')}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'service'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'service'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
             >
-              ✂️ Layanan
+              <Scissors className="w-4 h-4" />
+              Layanan
             </button>
           </div>
         </div>
-        
+
         {/* Table Content */}
         <div className="p-6">
           {activeTab === 'product' ? (
@@ -661,35 +677,33 @@ export function FinancialDashboardPage() {
                         return a.name.localeCompare(b.name)
                       })
                       .map((product, index) => (
-                      <tr key={product.id} className={`border-t border-gray-100 hover:bg-gray-50 ${product.sold === 0 ? 'bg-red-50' : ''}`}>
-                        <td className="py-3 px-4">
-                          <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full text-xs font-bold ${
-                            index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                            index === 1 ? 'bg-gray-300 text-gray-700' :
-                            index === 2 ? 'bg-orange-300 text-orange-800' :
-                            'bg-gray-200 text-gray-600'
-                          }`}>
-                            {index + 1}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-medium text-gray-800">{product.name}</td>
-                        <td className={`py-3 px-4 text-center ${product.sold === 0 ? 'text-red-500' : 'text-gray-600'}`}>{product.sold}</td>
-                        <td className={`py-3 px-4 text-right font-semibold ${product.revenue === 0 ? 'text-red-500' : 'text-green-600'}`}>
-                          Rp {product.revenue.toLocaleString('id-ID')}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            product.sold === 0 
-                              ? 'bg-red-100 text-red-700' 
-                              : product.sold >= 5 
-                                ? 'bg-green-100 text-green-700' 
+                        <tr key={product.id} className={`border-t border-gray-100 hover:bg-gray-50 ${product.sold === 0 ? 'bg-red-50' : ''}`}>
+                          <td className="py-3 px-4">
+                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                              index === 1 ? 'bg-gray-300 text-gray-700' :
+                                index === 2 ? 'bg-orange-300 text-orange-800' :
+                                  'bg-gray-200 text-gray-600'
+                              }`}>
+                              {index + 1}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-medium text-gray-800">{product.name}</td>
+                          <td className={`py-3 px-4 text-center ${product.sold === 0 ? 'text-red-500' : 'text-gray-600'}`}>{product.sold}</td>
+                          <td className={`py-3 px-4 text-right font-semibold ${product.revenue === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            Rp {product.revenue.toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2 py-1 text-xs rounded-full ${product.sold === 0
+                              ? 'bg-red-100 text-red-700'
+                              : product.sold >= 5
+                                ? 'bg-green-100 text-green-700'
                                 : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {product.sold === 0 ? 'Tidak Laku' : product.sold >= 5 ? 'Laris' : 'Normal'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                              }`}>
+                              {product.sold === 0 ? 'Tidak Laku' : product.sold >= 5 ? 'Laris' : 'Normal'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -718,35 +732,33 @@ export function FinancialDashboardPage() {
                         return a.name.localeCompare(b.name)
                       })
                       .map((service, index) => (
-                      <tr key={service.id} className={`border-t border-gray-100 hover:bg-gray-50 ${service.bookings === 0 ? 'bg-red-50' : ''}`}>
-                        <td className="py-3 px-4">
-                          <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full text-xs font-bold ${
-                            index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                            index === 1 ? 'bg-gray-300 text-gray-700' :
-                            index === 2 ? 'bg-orange-300 text-orange-800' :
-                            'bg-gray-200 text-gray-600'
-                          }`}>
-                            {index + 1}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-medium text-gray-800">{service.name}</td>
-                        <td className={`py-3 px-4 text-center ${service.bookings === 0 ? 'text-red-500' : 'text-gray-600'}`}>{service.bookings}</td>
-                        <td className={`py-3 px-4 text-right font-semibold ${service.revenue === 0 ? 'text-red-500' : 'text-green-600'}`}>
-                          Rp {service.revenue.toLocaleString('id-ID')}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            service.bookings === 0 
-                              ? 'bg-red-100 text-red-700' 
-                              : service.bookings >= 5 
-                                ? 'bg-green-100 text-green-700' 
+                        <tr key={service.id} className={`border-t border-gray-100 hover:bg-gray-50 ${service.bookings === 0 ? 'bg-red-50' : ''}`}>
+                          <td className="py-3 px-4">
+                            <span className={`w-6 h-6 inline-flex items-center justify-center rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                              index === 1 ? 'bg-gray-300 text-gray-700' :
+                                index === 2 ? 'bg-orange-300 text-orange-800' :
+                                  'bg-gray-200 text-gray-600'
+                              }`}>
+                              {index + 1}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-medium text-gray-800">{service.name}</td>
+                          <td className={`py-3 px-4 text-center ${service.bookings === 0 ? 'text-red-500' : 'text-gray-600'}`}>{service.bookings}</td>
+                          <td className={`py-3 px-4 text-right font-semibold ${service.revenue === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                            Rp {service.revenue.toLocaleString('id-ID')}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2 py-1 text-xs rounded-full ${service.bookings === 0
+                              ? 'bg-red-100 text-red-700'
+                              : service.bookings >= 5
+                                ? 'bg-green-100 text-green-700'
                                 : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {service.bookings === 0 ? 'Tidak Ada Booking' : service.bookings >= 5 ? 'Laris' : 'Normal'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                              }`}>
+                              {service.bookings === 0 ? 'Tidak Ada Booking' : service.bookings >= 5 ? 'Laris' : 'Normal'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -756,44 +768,48 @@ export function FinancialDashboardPage() {
           )}
         </div>
       </div>
-      
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           to="/adminpanel/payments"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center gap-4"
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition flex items-center gap-4 group"
         >
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl">✅</span>
+          <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            <CreditCard className="w-6 h-6 text-green-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-800">Verifikasi Pembayaran</h3>
-            <p className="text-sm text-gray-600">Tinjau dan setujui pembayaran yang menunggu</p>
-            <span className="text-blue-600 text-sm font-medium">Ke Pembayaran →</span>
+            <h3 className="text-lg font-bold text-gray-900">Verifikasi Pembayaran</h3>
+            <p className="text-sm text-gray-500 mt-1">Tinjau dan setujui pembayaran yang menunggu</p>
+            <div className="mt-3 flex items-center text-blue-600 text-sm font-medium">
+              Ke Pembayaran <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </Link>
-        
+
         <Link
           to="/adminpanel/reports"
-          className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition flex items-center gap-4"
+          className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition flex items-center gap-4 group"
         >
-          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-2xl">📊</span>
+          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            <FileText className="w-6 h-6 text-blue-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-800">Buat Laporan</h3>
-            <p className="text-sm text-gray-600">Unduh laporan keuangan</p>
-            <span className="text-blue-600 text-sm font-medium">Ke Laporan →</span>
+            <h3 className="text-lg font-bold text-gray-900">Buat Laporan</h3>
+            <p className="text-sm text-gray-500 mt-1">Unduh laporan keuangan</p>
+            <div className="mt-3 flex items-center text-blue-600 text-sm font-medium">
+              Ke Laporan <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </Link>
       </div>
-      
+
       {/* Summary */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">
           Ringkasan Keuangan - {getPeriodLabel()}
         </h3>
-        
+
         <div className="space-y-4">
           {/* Income Bar */}
           <div>
@@ -810,7 +826,7 @@ export function FinancialDashboardPage() {
               />
             </div>
           </div>
-          
+
           {/* Expenses Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -830,22 +846,20 @@ export function FinancialDashboardPage() {
               />
             </div>
           </div>
-          
+
           {/* Profit Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Net Profit</span>
-              <span className={`text-sm font-bold ${
-                periodData.profit >= 0 ? 'text-blue-600' : 'text-red-600'
-              }`}>
+              <span className={`text-sm font-bold ${periodData.profit >= 0 ? 'text-blue-600' : 'text-red-600'
+                }`}>
                 Rp {periodData.profit.toLocaleString('id-ID')}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div
-                className={`h-3 rounded-full ${
-                  periodData.profit >= 0 ? 'bg-blue-500' : 'bg-red-500'
-                }`}
+                className={`h-3 rounded-full ${periodData.profit >= 0 ? 'bg-blue-500' : 'bg-red-500'
+                  }`}
                 style={{
                   width: periodData.income > 0
                     ? `${Math.abs((periodData.profit / periodData.income) * 100)}%`

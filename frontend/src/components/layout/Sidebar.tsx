@@ -41,11 +41,10 @@ export function Sidebar() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                isActive
+              className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive
                   ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-100'
-              }`}
+                }`}
             >
               <span className="text-xl">{item.icon}</span>
               <span>{item.label}</span>
@@ -58,11 +57,10 @@ export function Sidebar() {
       <div className="border-t border-gray-200 p-4">
         <Link
           to="/profile/edit"
-          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-            location.pathname === '/profile/edit'
+          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${location.pathname === '/profile/edit'
               ? 'bg-blue-50 text-blue-700'
               : 'text-gray-700 hover:bg-gray-100'
-          }`}
+            }`}
         >
           <span className="text-xl">⚙️</span>
           <div className="flex-1">

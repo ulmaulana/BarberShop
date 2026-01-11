@@ -12,7 +12,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const { user, register } = useAuth()
   const { showToast } = useToast()
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -32,41 +32,41 @@ export function RegisterPage() {
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!validateRequired(formData.name)) {
       newErrors.name = 'Nama wajib diisi'
     }
-    
+
     if (!validateRequired(formData.email)) {
       newErrors.email = 'Email wajib diisi'
     } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Format email tidak valid'
     }
-    
+
     if (!validateRequired(formData.phone)) {
       newErrors.phone = 'Nomor HP wajib diisi'
     } else if (!validatePhone(formData.phone)) {
       newErrors.phone = 'Format nomor HP tidak valid'
     }
-    
+
     const passwordValidation = validatePassword(formData.password)
     if (!passwordValidation.valid) {
       newErrors.password = passwordValidation.message || 'Password tidak valid'
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Password tidak sama'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validate()) return
-    
+
     setLoading(true)
     try {
       await register(formData.email, formData.password, formData.name)
